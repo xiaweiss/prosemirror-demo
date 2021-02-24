@@ -4,4 +4,5 @@
 // import './4-commands'
 // import './5-content'
 // import './6-node-views'
-import './7-tables'
+// import './7-tables'
+import './8-example-setup'

@@ -1,0 +1,3 @@
+[submodule "src/prosemirror-example-setup"]
+	path = src/prosemirror-example-setup
+	url = git@github.com:ProseMirror/prosemirror-example-setup.git
