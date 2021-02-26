@@ -20,6 +20,7 @@ import {addColumnAfter, addColumnBefore, deleteColumn, addRowAfter, addRowBefore
         mergeCells, splitCell, setCellAttr, toggleHeaderRow, toggleHeaderColumn, toggleHeaderCell,
         goToNextCell, deleteTable}  from "prosemirror-tables"
 import {tableEditing, columnResizing, tableNodes, fixTables}  from "prosemirror-tables"
+import createElement from './utils/create-element'
 
 let schema = new Schema({
   nodes: baseSchema.spec.nodes.append(tableNodes({
@@ -56,7 +57,17 @@ let tableMenu = [
 ]
 menu.splice(2, 0, [new Dropdown(tableMenu, {label: "Table"})])
 
-let doc = DOMParser.fromSchema(schema).parse(document.querySelector("#content"))
+const content = createElement(`
+<h2>Example content</h2>
+<p>The table:</p>
+<table>
+  <tr><th colspan=3 data-colwidth="100,0,0">Wide header</td></tr>
+  <tr><td>One</td><td>Two</td><td>Three</td></tr>
+  <tr><td>Four</td><td>Five</td><td>Six</td></tr>
+</table>
+`)
+
+let doc = DOMParser.fromSchema(schema).parse(content)
 let state = EditorState.create({doc, plugins: [
   columnResizing(),
   tableEditing(),

@@ -4,18 +4,24 @@ import 'prosemirror-example-setup/style/style.css'
 import 'prosemirror-tables/style/tables.css'
 import 'prosemirror-gapcursor/style/gapcursor.css'
 
-import './7-tables.css'
 
-import {schema} from "prosemirror-schema-basic"
 import {EditorState} from "prosemirror-state"
 import {EditorView} from "prosemirror-view"
-import {undo, redo, history} from "prosemirror-history"
-import {keymap} from "prosemirror-keymap"
-import {baseKeymap} from "prosemirror-commands"
-import {buildInputRules, buildKeymap, buildMenuItems, exampleSetup} from 'prosemirror-example-setup'
+import {Schema, DOMParser} from "prosemirror-model"
+import {schema} from "prosemirror-schema-basic"
+import {addListNodes} from "prosemirror-schema-list"
+import {exampleSetup} from "prosemirror-example-setup"
 
-let state = EditorState.create({
-  schema,
-  plugins: exampleSetup({schema})
+// Mix the nodes from prosemirror-schema-list into the basic schema to
+// create a schema with list support.
+const mySchema = new Schema({
+  nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
+  marks: schema.spec.marks
 })
-let view = new EditorView(document.body, {state})
+
+window.view = new EditorView(document.querySelector("#editor"), {
+  state: EditorState.create({
+    doc: DOMParser.fromSchema(mySchema).parse(document.querySelector("#content")),
+    plugins: exampleSetup({schema: mySchema})
+  })
+})

@@ -5,4 +5,6 @@
 // import './5-content'
 // import './6-node-views'
 // import './7-tables'
-import './8-example-setup'
+// import './8-example-setup'
+// import './9-example-dino'
+import './10-example-tooltips'
