@@ -4,9 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "webpack --watch",
     "dev": "webpack serve",
+    "watch": "webpack --watch",
     "build": "webpack"
   },
   "author": "xiawei",

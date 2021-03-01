@@ -9,3 +9,6 @@
 // import './9-example-dino'
 // import './10-example-tooltips'
 import './table'
+
+import applyDevTools from "prosemirror-dev-tools"
+applyDevTools(window.view);

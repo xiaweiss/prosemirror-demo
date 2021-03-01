@@ -16,10 +16,16 @@ import {keymap}  from "prosemirror-keymap"
 import {exampleSetup, buildMenuItems}  from "prosemirror-example-setup"
 import {MenuItem, Dropdown}  from "prosemirror-menu"
 
+// import {addColumnAfter, addColumnBefore, deleteColumn, addRowAfter, addRowBefore, deleteRow,
+//         mergeCells, splitCell, setCellAttr, toggleHeaderRow, toggleHeaderColumn, toggleHeaderCell,
+//         goToNextCell, deleteTable}  from "../../node_modules/prosemirror-tables/src/index"
+// import {tableEditing, columnResizing, tableNodes, fixTables}  from "../../node_modules/prosemirror-tables/src/index"
+
 import {addColumnAfter, addColumnBefore, deleteColumn, addRowAfter, addRowBefore, deleteRow,
-        mergeCells, splitCell, setCellAttr, toggleHeaderRow, toggleHeaderColumn, toggleHeaderCell,
-        goToNextCell, deleteTable}  from "../../node_modules/prosemirror-tables/src/index"
-import {tableEditing, columnResizing, tableNodes, fixTables}  from "../../node_modules/prosemirror-tables/src/index"
+  mergeCells, splitCell, setCellAttr, toggleHeaderRow, toggleHeaderColumn, toggleHeaderCell,
+  goToNextCell, deleteTable}  from "../prosemirror-tables/src/index"
+import {tableEditing, columnResizing, tableNodes, fixTables}  from "../prosemirror-tables/src/index"
+
 import createElement from '../utils/create-element'
 
 let schema = new Schema({
