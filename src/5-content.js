@@ -6,8 +6,8 @@ import createElement from './utils/create-element'
 
 // let content = document.getElementById("content")
 let content = createElement(`
+<h1>title</h1>
 <p>paragraph 1</p>
-<p>paragraph 2</p>
 <img src="https://static001.geekbang.org/resource/image/bb/21/bb38fb7c1073eaee1755f81131f11d21.jpg" alt="img-1" />
 `)
 

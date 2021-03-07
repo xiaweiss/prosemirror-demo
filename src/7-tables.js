@@ -8,18 +8,21 @@ import './7-tables.css'
 
 
 import {EditorView} from "prosemirror-view"
-import {EditorState} from "prosemirror-state"
+import {EditorState, TextSelection} from "prosemirror-state"
 import {DOMParser, Schema}  from "prosemirror-model"
 import {schema as baseSchema}  from "prosemirror-schema-basic"
 import {baseKeymap}  from "prosemirror-commands"
 import {keymap}  from "prosemirror-keymap"
 import {exampleSetup, buildMenuItems}  from "prosemirror-example-setup"
 import {MenuItem, Dropdown}  from "prosemirror-menu"
+import {keyName} from 'w3c-keyname'
+
 
 import {addColumnAfter, addColumnBefore, deleteColumn, addRowAfter, addRowBefore, deleteRow,
         mergeCells, splitCell, setCellAttr, toggleHeaderRow, toggleHeaderColumn, toggleHeaderCell,
-        goToNextCell, deleteTable}  from "prosemirror-tables"
-import {tableEditing, columnResizing, tableNodes, fixTables}  from "prosemirror-tables"
+        goToNextCell, deleteTable}  from "./prosemirror-tables/src/index"
+import {tableEditing, columnResizing, tableNodes, fixTables}  from "./prosemirror-tables/src/index"
+import {isInTable} from "./prosemirror-tables/src/util"
 import createElement from './utils/create-element'
 
 let schema = new Schema({
@@ -61,25 +64,80 @@ const content = createElement(`
 <h2>Example content</h2>
 <p>The table:</p>
 <table>
-  <tr><th colspan=3 data-colwidth="100,0,0">Wide header</td></tr>
   <tr><td>One</td><td>Two</td><td>Three</td></tr>
   <tr><td>Four</td><td>Five</td><td>Six</td></tr>
+  <tr><td></td><td></td><td></td></tr>
 </table>
 `)
 
 let doc = DOMParser.fromSchema(schema).parse(content)
-let state = EditorState.create({doc, plugins: [
-  columnResizing(),
-  tableEditing(),
-  keymap({
-    "Tab": goToNextCell(1),
-    "Shift-Tab": goToNextCell(-1)
-  })
+const state = EditorState.create({doc, plugins: [
+  // columnResizing(),
+  // tableEditing(),
+  // keymap({
+  //   "Tab": goToNextCell(1),
+  //   "Shift-Tab": goToNextCell(-1)
+  // })
 ].concat(exampleSetup({schema, menuContent: menu}))})
 let fix = fixTables(state)
 if (fix) state = state.apply(fix.setMeta("addToHistory", false))
 
-window.view = new EditorView(document.querySelector("#editor"), {state})
+const view = new EditorView(document.querySelector("#editor"), {state})
+window.view = view
 
 document.execCommand("enableObjectResizing", false, false)
 document.execCommand("enableInlineTableEditing", false, false)
+
+const {dispatch} = view
+
+import {createTable} from './tiptap-utils/src'
+
+function addTable (state, dispatch, { rowsCount = 3, colsCount = 3, withHeaderRow = false }) {
+  const offset = state.tr.selection.anchor + 1
+
+  const nodes = createTable(state.schema, rowsCount, colsCount, withHeaderRow)
+  const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView()
+  const resolvedPos = tr.doc.resolve(offset)
+
+  tr.setSelection(TextSelection.near(resolvedPos))
+
+  dispatch(tr)
+}
+
+window.commands = {
+  addTable: (rowsCount, colsCount, withHeaderRow) => addTable(view.state, dispatch, {rowsCount, colsCount, withHeaderRow}),
+  deleteTable: () => deleteTable(view.state, dispatch),
+
+  addColumnBefore: () => addColumnBefore (view.state, dispatch),
+  addColumnAfter: () => addColumnAfter(view.state, dispatch),
+  deleteColumn: () => deleteColumn(view.state, dispatch),
+
+  addRowBefore: () => addRowBefore(view.state, dispatch),
+  addRowAfter: () => addRowAfter(view.state, dispatch),
+  deleteRow: () => deleteRow(view.state, dispatch),
+
+  mergeCells: () => mergeCells(view.state, dispatch),
+  splitCell: () => splitCell(view.state, dispatch),
+
+  setCellAttr: () => setCellAttr(name, value),
+  toggleHeaderRow: () => toggleHeaderRow(view.state, dispatch),
+  toggleHeaderColumn: () => toggleHeaderColumn(view.state, dispatch),
+  toggleHeaderCell: () => toggleHeaderCell(view.state, dispatch),
+  goToNextCell: () => goToNextCell(1),
+  isInTable: () => isInTable(view.state)
+}
+
+window.addEventListener('keydown', (event) => {
+  const name = keyName(event)
+  console.log('keydown', name)
+  switch (name) {
+    case 'a':
+      commands.addRowAfter()
+      break;
+    case 'b':
+      commands.addRowBefore()
+      break;
+    default:
+      console.log('isInTable', commands.isInTable())
+  }
+})
