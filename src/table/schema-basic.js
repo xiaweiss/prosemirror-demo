@@ -82,7 +82,9 @@ export const nodes = {
       title: {default: null}
     },
     group: "inline",
-    draggable: true,
+    // draggable: true,
+    selectable: false,
+    draggable: false,
     parseDOM: [{tag: "img[src]", getAttrs(dom) {
       return {
         src: dom.getAttribute("src"),

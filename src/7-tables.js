@@ -92,6 +92,26 @@ const {dispatch} = view
 
 import {createTable} from './tiptap-utils/src'
 
+function addTableToEnd (state, dispatch, { rowsCount, colsCount, withHeaderRow }, ) {
+  let tr = state.tr
+
+  // get block end position
+  const end = tr.selection.$head.end(1) // param 1 is node deep
+  const resolvedEnd = tr.doc.resolve(end)
+
+  // move cursor to the end, then insert table
+  const nodes = createTable(state.schema, rowsCount, colsCount, withHeaderRow)
+  tr.setSelection(TextSelection.near(resolvedEnd))
+  tr = tr.replaceSelectionWith(nodes).scrollIntoView()
+
+  // move cursor into table
+  const offset = end + 1
+  const resolvedPos = tr.doc.resolve(offset)
+  tr.setSelection(TextSelection.near(resolvedPos))
+
+  dispatch(tr)
+}
+
 function addTable (state, dispatch, { rowsCount = 3, colsCount = 3, withHeaderRow = false }) {
   const offset = state.tr.selection.anchor + 1
 
@@ -104,7 +124,18 @@ function addTable (state, dispatch, { rowsCount = 3, colsCount = 3, withHeaderRo
   dispatch(tr)
 }
 
+import {
+  splitBlock,
+  liftEmptyBlock,
+  chainCommands,
+  newlineInCode,
+  createParagraphNear,
+  deleteSelection,
+  selectParentNode
+} from 'prosemirror-commands';
+
 window.commands = {
+  addTableToEnd: (rowsCount = 3, colsCount = 3, withHeaderRow) => addTableToEnd(view.state, dispatch, { rowsCount, colsCount, withHeaderRow }),
   addTable: (rowsCount, colsCount, withHeaderRow) => addTable(view.state, dispatch, {rowsCount, colsCount, withHeaderRow}),
   deleteTable: () => deleteTable(view.state, dispatch),
 
@@ -124,7 +155,15 @@ window.commands = {
   toggleHeaderColumn: () => toggleHeaderColumn(view.state, dispatch),
   toggleHeaderCell: () => toggleHeaderCell(view.state, dispatch),
   goToNextCell: () => goToNextCell(1),
-  isInTable: () => isInTable(view.state)
+  isInTable: () => isInTable(view.state),
+
+  selectParentNode: () => selectParentNode(view.state, dispatch),
+  deleteSelection: () => deleteSelection(view.state, dispatch),
+  splitBlock: () => splitBlock(view.state, dispatch),
+  liftEmptyBlock: () => liftEmptyBlock(view.state, dispatch),
+  newlineInCode: () => newlineInCode(view.state, dispatch),
+  createParagraphNear: () => createParagraphNear(view.state, dispatch)
+
 }
 
 window.addEventListener('keydown', (event) => {

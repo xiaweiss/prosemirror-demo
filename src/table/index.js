@@ -17,6 +17,7 @@ import createElement from '../utils/create-element'
 
 const content = createElement(`
 <h2>Example content</h2>
+<img src="https://xiawei.cc/images/avatar2.jpg" alt="" />
 <p>The table:</p>
 <table class="table_prosemirror">
   <tr><td>One</td><td>Two</td><td>Three</td></tr>
@@ -28,25 +29,25 @@ const content = createElement(`
 /**
  * schema
  */
-// import {schema as baseSchema} from "./schema-basic"
-// import {tableNodes} from '../prosemirror-tables/src/index'
+import {schema as baseSchema} from "./schema-basic"
+import {tableNodes} from '../prosemirror-tables/src/index'
 
-// let schema = new Schema({
-//   nodes: baseSchema.spec.nodes.append(tableNodes({
-//     tableGroup: "block",
-//     cellContent: "block+",
-//     cellAttributes: {
-//       background: {
-//         default: null,
-//         getFromDOM(dom) { return dom.style.backgroundColor || null },
-//         setDOMAttr(value, attrs) { if (value) attrs.style = (attrs.style || "") + `background-color: ${value};` }
-//       }
-//     }
-//   })),
-//   marks: baseSchema.spec.marks
-// })
+let schema = new Schema({
+  nodes: baseSchema.spec.nodes.append(tableNodes({
+    tableGroup: "block",
+    cellContent: "block+",
+    cellAttributes: {
+      background: {
+        default: null,
+        getFromDOM(dom) { return dom.style.backgroundColor || null },
+        setDOMAttr(value, attrs) { if (value) attrs.style = (attrs.style || "") + `background-color: ${value};` }
+      }
+    }
+  })),
+  marks: baseSchema.spec.marks
+})
 
-import {schema} from './schema'
+// import {schema} from './schema'
 
 
 let doc = DOMParser.fromSchema(schema).parse(content)
@@ -91,7 +92,35 @@ function addTable (state, dispatch, { rowsCount, colsCount, withHeaderRow }, ) {
   dispatch(tr)
 }
 
+function addTableToEnd (state, dispatch, { rowsCount, colsCount, withHeaderRow }, ) {
+  let tr = state.tr
+
+  // get block end position
+  const end = tr.selection.$head.end(1) // param 1 is node deep
+  const resolvedEnd = tr.doc.resolve(end)
+
+  // move cursor to the end, then insert table
+  const nodes = createTable(state.schema, rowsCount, colsCount, withHeaderRow)
+  tr.setSelection(TextSelection.near(resolvedEnd))
+  tr = tr.replaceSelectionWith(nodes).scrollIntoView()
+
+  // move cursor into table
+  const offset = end + 1
+  const resolvedPos = tr.doc.resolve(offset)
+  tr.setSelection(TextSelection.near(resolvedPos))
+
+  dispatch(tr)
+}
+
+function getEndPos (state, dispatch) {
+  const tr = state.tr
+  console.log('end', tr.selection.$head.end())
+  console.log('node end', TextSelection.atEnd)
+}
+
 window.commands = {
+  getEndPos: () => getEndPos(view.state, dispatch),
+  addTableToEnd: (rowsCount = 3, colsCount = 3, withHeaderRow) => addTableToEnd(view.state, dispatch, { rowsCount, colsCount, withHeaderRow }),
   addTable: (rowsCount = 3, colsCount = 3, withHeaderRow) => addTable(view.state, dispatch, { rowsCount, colsCount, withHeaderRow }),
   deleteTable: () => deleteTable(view.state, dispatch),
 
