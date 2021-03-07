@@ -10,6 +10,8 @@ import '../7-tables.css'
 import {EditorView} from "prosemirror-view"
 import {EditorState, TextSelection} from "prosemirror-state"
 import {DOMParser, Schema}  from "prosemirror-model"
+import {keymap}  from "prosemirror-keymap"
+import {undo, redo, history} from "prosemirror-history"
 /**
  * element
  */
@@ -30,7 +32,7 @@ const content = createElement(`
  * schema
  */
 import {schema as baseSchema} from "./schema-basic"
-import {tableNodes} from '../prosemirror-tables/src/index'
+import {tableNodes} from '../prosemirror-tables/src'
 
 let schema = new Schema({
   nodes: baseSchema.spec.nodes.append(tableNodes({
@@ -47,11 +49,24 @@ let schema = new Schema({
   marks: baseSchema.spec.marks
 })
 
+import {tableEditing, columnResizing, fixTables} from '../prosemirror-tables/src'
 // import {schema} from './schema'
 
 
 let doc = DOMParser.fromSchema(schema).parse(content)
-const state = EditorState.create({doc})
+const state = EditorState.create({
+  doc,
+  plugins: [
+    columnResizing(),
+    tableEditing(),
+    history(),
+    keymap({"Mod-z": undo, "Mod-y": redo}),
+    keymap({
+      "Tab": goToNextCell(1),
+      "Shift-Tab": goToNextCell(-1)
+    }),
+  ]
+})
 // let fix = fixTables(state)
 // if (fix) state = state.apply(fix.setMeta("addToHistory", false))
 
@@ -110,12 +125,6 @@ function addTableToEnd (state, dispatch, { rowsCount, colsCount, withHeaderRow }
   tr.setSelection(TextSelection.near(resolvedPos))
 
   dispatch(tr)
-}
-
-function getEndPos (state, dispatch) {
-  const tr = state.tr
-  console.log('end', tr.selection.$head.end())
-  console.log('node end', TextSelection.atEnd)
 }
 
 window.commands = {
