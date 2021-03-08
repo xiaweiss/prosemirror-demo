@@ -15,34 +15,34 @@ import {DOMParser, Schema}  from "prosemirror-model"
  */
 import createElement from '../utils/create-element'
 
-// const content = createElement(`
-// <h2>Example content</h2>
-// <img src="https://xiawei.cc/images/avatar2.jpg" alt="" />
-// <p>The table:</p>
-// <table class="table_prosemirror">
-//   <tr><td>One</td><td>Two</td><td>Three</td></tr>
-//   <tr><td>Four</td><td>Five</td><td>Six</td></tr>
-//   <tr><td></td><td></td><td></td></tr>
-// </table>
-// `)
-
 const content = createElement(`
 <h2>Example content</h2>
 <img src="https://xiawei.cc/images/avatar2.jpg" alt="" />
 <p>The table:</p>
 <table class="table_prosemirror">
-  <colgroup>
-    <col>
-    <col>
-    <col>
-  </colgroup>
-  <tbody>
-    <tr><td>One</td><td>Two</td><td>Three</td></tr>
-    <tr><td>Four</td><td>Five</td><td>Six</td></tr>
-    <tr><td></td><td></td><td></td></tr>
-  </tbody>
+  <tr><td>One</td><td>Two</td><td>Three</td></tr>
+  <tr><td>Four</td><td>Five</td><td>Six</td></tr>
+  <tr><td></td><td></td><td></td></tr>
 </table>
 `)
+
+// const content = createElement(`
+// <h2>Example content</h2>
+// <img src="https://xiawei.cc/images/avatar2.jpg" alt="" />
+// <p>The table:</p>
+// <table class="table_prosemirror">
+//   <colgroup>
+//     <col>
+//     <col>
+//     <col>
+//   </colgroup>
+//   <tbody>
+//     <tr><td>One</td><td>Two</td><td>Three</td></tr>
+//     <tr><td>Four</td><td>Five</td><td>Six</td></tr>
+//     <tr><td></td><td></td><td></td></tr>
+//   </tbody>
+// </table>
+// `)
 
 /**
  * schema
@@ -80,7 +80,7 @@ const state = EditorState.create({
   plugins: [
     dropCursor(),
     gapCursor(),
-    columnResizing(),
+    columnResizing({ cellMinWidth: 80 }),
     tableEditing(),
     history(),
     keymap(baseKeymap),
@@ -94,7 +94,14 @@ const state = EditorState.create({
 // let fix = fixTables(state)
 // if (fix) state = state.apply(fix.setMeta("addToHistory", false))
 
-const view = new EditorView(document.querySelector("#editor"), {state})
+import {TableView} from './tableview'
+
+const view = new EditorView(document.querySelector("#editor"), {
+  state,
+  // nodeViews: {
+  //   table: (node, view, getPos) => new TableView(node, view, getPos)
+  // }
+})
 window.view = view
 
 
