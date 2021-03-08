@@ -62,6 +62,7 @@ menu.splice(2, 0, [new Dropdown(tableMenu, {label: "Table"})])
 
 const content = createElement(`
 <h2>Example content</h2>
+<img src="https://xiawei.cc/images/avatar2.jpg" alt="" />
 <p>The table:</p>
 <table>
   <tr><td>One</td><td>Two</td><td>Three</td></tr>

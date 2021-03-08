@@ -24,7 +24,6 @@ import {fixTables, fixTablesKey} from "./fixtables"
 // column-width dragging plugin, might want to get a turn first to
 // perform more specific behavior.
 export function tableEditing({ allowTableNodeSelection = false } = {}) {
-  console.log('new tableEditing plugin')
   return new Plugin({
     key: tableEditingKey,
 
@@ -58,10 +57,6 @@ export function tableEditing({ allowTableNodeSelection = false } = {}) {
       handleKeyDown,
 
       handlePaste
-    },
-
-    view (...args) {
-      console.log('view', ...args)
     },
 
     appendTransaction(_, oldState, state) {

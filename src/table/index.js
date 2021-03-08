@@ -10,21 +10,37 @@ import '../7-tables.css'
 import {EditorView} from "prosemirror-view"
 import {EditorState, TextSelection} from "prosemirror-state"
 import {DOMParser, Schema}  from "prosemirror-model"
-import {keymap}  from "prosemirror-keymap"
-import {undo, redo, history} from "prosemirror-history"
 /**
  * element
  */
 import createElement from '../utils/create-element'
+
+// const content = createElement(`
+// <h2>Example content</h2>
+// <img src="https://xiawei.cc/images/avatar2.jpg" alt="" />
+// <p>The table:</p>
+// <table class="table_prosemirror">
+//   <tr><td>One</td><td>Two</td><td>Three</td></tr>
+//   <tr><td>Four</td><td>Five</td><td>Six</td></tr>
+//   <tr><td></td><td></td><td></td></tr>
+// </table>
+// `)
 
 const content = createElement(`
 <h2>Example content</h2>
 <img src="https://xiawei.cc/images/avatar2.jpg" alt="" />
 <p>The table:</p>
 <table class="table_prosemirror">
-  <tr><td>One</td><td>Two</td><td>Three</td></tr>
-  <tr><td>Four</td><td>Five</td><td>Six</td></tr>
-  <tr><td></td><td></td><td></td></tr>
+  <colgroup>
+    <col>
+    <col>
+    <col>
+  </colgroup>
+  <tbody>
+    <tr><td>One</td><td>Two</td><td>Three</td></tr>
+    <tr><td>Four</td><td>Five</td><td>Six</td></tr>
+    <tr><td></td><td></td><td></td></tr>
+  </tbody>
 </table>
 `)
 
@@ -52,14 +68,22 @@ let schema = new Schema({
 import {tableEditing, columnResizing, fixTables} from '../prosemirror-tables/src'
 // import {schema} from './schema'
 
+import {dropCursor} from 'prosemirror-dropcursor'
+import {gapCursor} from 'prosemirror-gapcursor'
+import {keymap}  from "prosemirror-keymap"
+import {baseKeymap} from "prosemirror-commands"
+import {undo, redo, history} from "prosemirror-history"
 
 let doc = DOMParser.fromSchema(schema).parse(content)
 const state = EditorState.create({
   doc,
   plugins: [
+    dropCursor(),
+    gapCursor(),
     columnResizing(),
     tableEditing(),
     history(),
+    keymap(baseKeymap),
     keymap({"Mod-z": undo, "Mod-y": redo}),
     keymap({
       "Tab": goToNextCell(1),
