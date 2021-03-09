@@ -8,7 +8,7 @@ import '../7-tables.css'
 
 
 import {EditorView} from "prosemirror-view"
-import {EditorState, TextSelection} from "prosemirror-state"
+import {EditorState, Selection, NodeSelection, TextSelection} from "prosemirror-state"
 import {DOMParser, Schema}  from "prosemirror-model"
 /**
  * element
@@ -48,7 +48,7 @@ const content = createElement(`
  * schema
  */
 import {schema as baseSchema} from "./schema-basic"
-import {tableNodes} from '../prosemirror-tables/src'
+import {tableNodes, CellSelection, selectionCell, TableMap} from '../prosemirror-tables/src'
 
 let schema = new Schema({
   nodes: baseSchema.spec.nodes.append(tableNodes({
@@ -65,7 +65,7 @@ let schema = new Schema({
   marks: baseSchema.spec.marks
 })
 
-import {tableEditing, columnResizing, fixTables} from '../prosemirror-tables/src'
+import {tableEditing, columnResizing, fixTables, isInTable} from '../prosemirror-tables/src'
 // import {schema} from './schema'
 
 import {dropCursor} from 'prosemirror-dropcursor'
@@ -158,6 +158,54 @@ function addTableToEnd (state, dispatch, { rowsCount, colsCount, withHeaderRow }
   dispatch(tr)
 }
 
+function selectRow (state, dispatch, row) {
+  if (!isInTable(state)) return false
+
+  const {tr, doc} = state
+  let selection
+
+  if (row >= 0) {
+    const $pos = selectionCell(state)
+    const table = $pos.node(-1)
+    const tableStart = $pos.start(-1)
+
+    let rowPos = 0
+    for (let i = 0; i < row; i++) rowPos += table.child(i).nodeSize
+    // let nextRow = rowPos + table.child(row).nodeSize
+
+    selection = NodeSelection.create(doc, tableStart + rowPos)
+  } else if (state.selection instanceof CellSelection) {
+    const {$anchorCell, $headCell} = state.selection
+    selection = CellSelection.rowSelection($anchorCell, $headCell)
+
+  } else {
+    const $cell = selectionCell(state)
+    selection = CellSelection.rowSelection($cell)
+  }
+
+  tr.setSelection(selection)
+  dispatch(tr)
+}
+
+function selectCol (state, dispatch, colNum) {
+  if (!isInTable(state)) return false
+
+  const tr = state.tr
+
+  if (state.selection instanceof CellSelection) {
+    const {$anchorCell, $headCell} = state.selection
+    const selection = CellSelection.colSelection($anchorCell, $headCell)
+    tr.setSelection(selection)
+  } else {
+    const $cell = selectionCell(state)
+    const selection = CellSelection.colSelection($cell)
+    tr.setSelection(selection)
+  }
+
+  dispatch(tr)
+}
+
+
 window.commands = {
   getEndPos: () => getEndPos(view.state, dispatch),
   addTableToEnd: (rowsCount = 3, colsCount = 3, withHeaderRow) => addTableToEnd(view.state, dispatch, { rowsCount, colsCount, withHeaderRow }),
@@ -171,6 +219,8 @@ window.commands = {
   addRowBefore: () => addRowBefore(view.state, dispatch),
   addRowAfter: () => addRowAfter(view.state, dispatch),
   deleteRow: () => deleteRow(view.state, dispatch),
+  selectRow: (row) => selectRow(view.state, dispatch, row),
+  selectCol: () => selectCol(view.state, dispatch),
 
   mergeCells: () => mergeCells(view.state, dispatch),
   splitCell: () => splitCell(view.state, dispatch),
@@ -180,5 +230,7 @@ window.commands = {
   toggleHeaderColumn: () => toggleHeaderColumn(view.state, dispatch),
   toggleHeaderCell: () => toggleHeaderCell(view.state, dispatch),
   goToNextCell: () => goToNextCell(1),
-  isInTable: () => isInTable(view.state)
+  // test
+  isInTable: () => isInTable(view.state),
+  TableMap
 }

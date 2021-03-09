@@ -60,6 +60,7 @@ export function tableEditing({ allowTableNodeSelection = false } = {}) {
     },
 
     appendTransaction(_, oldState, state) {
+      console.log('appendTransaction')
       return normalizeSelection(state, fixTables(state, oldState), allowTableNodeSelection)
     }
   })
