@@ -8,7 +8,7 @@ import '../7-tables.css'
 
 
 import {EditorView} from "prosemirror-view"
-import {EditorState, Selection, NodeSelection, TextSelection} from "prosemirror-state"
+import {EditorState, Selection, NodeSelection, TextSelection, Node} from "prosemirror-state"
 import {DOMParser, Schema}  from "prosemirror-model"
 /**
  * element
@@ -20,11 +20,22 @@ const content = createElement(`
 <img src="https://xiawei.cc/images/avatar2.jpg" alt="" />
 <p>The table:</p>
 <table class="table_prosemirror">
-  <tr><td>One</td><td>Two</td><td>Three</td></tr>
-  <tr><td>Four</td><td>Five</td><td>Six</td></tr>
+  <tr><td>One</td><td>Two</td><td>Three</td><td></td></tr>
+  <tr><td>Four</td><td>Five</td><td>Six</td><td></td></tr>
   <tr><td></td><td></td><td></td></tr>
 </table>
 `)
+
+// const content = createElement(`
+// <h2>Example content</h2>
+// <img src="https://xiawei.cc/images/avatar2.jpg" alt="" />
+// <p>The table:</p>
+// <table class="table_prosemirror">
+//   <tr><td colspan="2" rowspan="2">One</td><td>Two</td></tr>
+//   <tr><td>Three</td></tr>
+//   <tr><td></td><td></td></tr>
+// </table>
+// `)
 
 // const content = createElement(`
 // <h2>Example content</h2>
@@ -65,7 +76,13 @@ let schema = new Schema({
   marks: baseSchema.spec.marks
 })
 
-import {tableEditing, columnResizing, fixTables, isInTable} from '../prosemirror-tables/src'
+import {
+  tableEditing,
+  columnResizing,
+  fixTables,
+  isInTable,
+  tableNodeTypes
+} from '../prosemirror-tables/src'
 // import {schema} from './schema'
 
 import {dropCursor} from 'prosemirror-dropcursor'
@@ -74,14 +91,13 @@ import {keymap}  from "prosemirror-keymap"
 import {baseKeymap} from "prosemirror-commands"
 import {undo, redo, history} from "prosemirror-history"
 
+// let doc = schema.nodeFromJSON(json)
 let doc = DOMParser.fromSchema(schema).parse(content)
-const state = EditorState.create({
+let state = EditorState.create({
   doc,
   plugins: [
     dropCursor(),
     gapCursor(),
-    columnResizing({ cellMinWidth: 80 }),
-    tableEditing(),
     history(),
     keymap(baseKeymap),
     keymap({"Mod-z": undo, "Mod-y": redo}),
@@ -89,10 +105,15 @@ const state = EditorState.create({
       "Tab": goToNextCell(1),
       "Shift-Tab": goToNextCell(-1)
     }),
+    columnResizing({ cellMinWidth: 80 }),
+    tableEditing(),
   ]
 })
-// let fix = fixTables(state)
-// if (fix) state = state.apply(fix.setMeta("addToHistory", false))
+let fix = fixTables(state)
+if (fix) state = state.apply(fix.setMeta("addToHistory", false))
+
+document.execCommand("enableObjectResizing", false, false)
+document.execCommand("enableInlineTableEditing", false, false)
 
 import {TableView} from './tableview'
 
@@ -122,14 +143,45 @@ import {
   deleteTable,
 } from '../prosemirror-tables/src/commands'
 
-import { createTable } from '../tiptap-utils/src'
+// import { createTable } from '../tiptap-utils/src'
 
 const {dispatch} = view
 
-function addTable (state, dispatch, { rowsCount, colsCount, withHeaderRow }, ) {
+function createTable (state, rowsCount, colsCount, withHeaderRow, cellContent) {
+  const types = tableNodeTypes(state.schema)
+  const headerCells = []
+  const cells = []
+  const createCell = (cellType, cellContent) => cellContent ? cellType.createChecked(null, cellContent) : cellType.createAndFill()
+
+  for (let index = 0; index < colsCount; index += 1) {
+    const cell = createCell(types.cell, cellContent)
+
+    if (cell) {
+      cells.push(cell)
+    }
+
+    if (withHeaderRow) {
+      const headerCell = createCell(types.header_cell, cellContent)
+
+      if (headerCell) {
+        headerCells.push(headerCell)
+      }
+    }
+  }
+
+  const rows = []
+
+  for (let index = 0; index < rowsCount; index += 1) {
+    rows.push(types.row.createChecked(null, withHeaderRow && index === 0 ? headerCells : cells))
+  }
+
+  return types.table.createChecked(null, rows)
+}
+
+function addTable (state, dispatch, { rowsCount, colsCount, withHeaderRow, cellContent }, ) {
   const offset = state.tr.selection.anchor + 1
 
-  const nodes = createTable(state.schema, rowsCount, colsCount, withHeaderRow)
+  const nodes = createTable(state, rowsCount, colsCount, withHeaderRow, cellContent)
   const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView()
   const resolvedPos = tr.doc.resolve(offset)
 
@@ -138,7 +190,7 @@ function addTable (state, dispatch, { rowsCount, colsCount, withHeaderRow }, ) {
   dispatch(tr)
 }
 
-function addTableToEnd (state, dispatch, { rowsCount, colsCount, withHeaderRow }, ) {
+function addTableToEnd (state, dispatch, { rowsCount, colsCount, withHeaderRow, cellContent }, ) {
   let tr = state.tr
 
   // get block end position
@@ -146,7 +198,7 @@ function addTableToEnd (state, dispatch, { rowsCount, colsCount, withHeaderRow }
   const resolvedEnd = tr.doc.resolve(end)
 
   // move cursor to the end, then insert table
-  const nodes = createTable(state.schema, rowsCount, colsCount, withHeaderRow)
+  const nodes = createTable(state, rowsCount, colsCount, withHeaderRow, cellContent)
   tr.setSelection(TextSelection.near(resolvedEnd))
   tr = tr.replaceSelectionWith(nodes).scrollIntoView()
 
@@ -173,7 +225,7 @@ function selectRow (state, dispatch, row) {
     for (let i = 0; i < row; i++) rowPos += table.child(i).nodeSize
     // let nextRow = rowPos + table.child(row).nodeSize
 
-    selection = NodeSelection.create(doc, tableStart + rowPos)
+    selection = NodeSelection.create(doc, tableStart + rowPos + 1)
   } else if (state.selection instanceof CellSelection) {
     const {$anchorCell, $headCell} = state.selection
     selection = CellSelection.rowSelection($anchorCell, $headCell)
