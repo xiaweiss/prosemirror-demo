@@ -88,7 +88,7 @@ import {
 import {dropCursor} from 'prosemirror-dropcursor'
 import {gapCursor} from 'prosemirror-gapcursor'
 import {keymap}  from "prosemirror-keymap"
-import {baseKeymap} from "prosemirror-commands"
+import {baseKeymap, deleteSelection} from "prosemirror-commands"
 import {undo, redo, history} from "prosemirror-history"
 
 // let doc = schema.nodeFromJSON(json)
@@ -223,9 +223,8 @@ function selectRow (state, dispatch, row) {
 
     let rowPos = 0
     for (let i = 0; i < row; i++) rowPos += table.child(i).nodeSize
-    // let nextRow = rowPos + table.child(row).nodeSize
 
-    selection = NodeSelection.create(doc, tableStart + rowPos + 1)
+    selection = NodeSelection.create(doc, tableStart + rowPos)
   } else if (state.selection instanceof CellSelection) {
     const {$anchorCell, $headCell} = state.selection
     selection = CellSelection.rowSelection($anchorCell, $headCell)
@@ -284,5 +283,11 @@ window.commands = {
   goToNextCell: () => goToNextCell(1),
   // test
   isInTable: () => isInTable(view.state),
-  TableMap
+  TableMap,
+  deleteSelection: () => deleteSelection(view.state, dispatch),
 }
+
+window.Selection = Selection
+window.NodeSelection = NodeSelection
+window.TextSelection = TextSelection
+window.CellSelection = CellSelection
