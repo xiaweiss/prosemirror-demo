@@ -50,14 +50,21 @@ function drawCellSelection(state) {
   window.map = map
   window.rect = rect
 
+  console.log('drawCellSelection')
+
   if (sel.isRowSelection()) {
-    let rowStart = start
-    cells.push(Decoration.node(start - 1, start - 1 + table.nodeSize, {style: 'background: pink'}))
+    // Decoration.widget(start)
+    // let rowStart = start
+    // cells.push(Decoration.node(start - 1, start - 1 + table.nodeSize, {style: 'background: pink'}))
 
     let widget = document.createElement("div")
     widget.innerText = 1231231123
     console.log(widget)
-    cells.push(Decoration.widget(start, widget))
+    cells.push(Decoration.widget(start - 1 + table.nodeSize - 1, (view, getPos) => {
+      console.log('view', view)
+      console.log('getPos', getPos, getPos())
+      return widget
+    }))
 
     // for (let i = 0; i <= rect.bottom - 1; i++) {
     //   let rowEnd = rowStart + table.child(i).nodeSize
