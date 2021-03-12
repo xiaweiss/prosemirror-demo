@@ -17,8 +17,6 @@ export function drawCellSelection({ allowTableNodeSelection = false } = {}) {
       decorations: (state) => {
         if (!(state.selection instanceof CellSelection)) return null
 
-        console.log('drawCellSelection')
-
         const cells = []
         const sel = state.selection
 
@@ -31,37 +29,39 @@ export function drawCellSelection({ allowTableNodeSelection = false } = {}) {
         const tableMap = rect.map
         const tableWidth = tableMap.width
 
-        console.log(rect)
-        window.rect = rect
-
         cells.push(Decoration.widget(tableEnd, (view) => {
           let leftPx = 0
           let topPx = 0
           let rightPx = 0
           let bottomPx = 0
 
-
           // map row
           for (let row = 0; row < bottom; row++) {
-            const pos = tableMap.map[row * tableWidth]
+            // calculate from row of rect left
+            const pos = tableMap.map[row * tableWidth + left]
             const cell = table.nodeAt(pos)
             const {height} = view.nodeDOM(tableStart + pos).getBoundingClientRect()
 
             if (row < top) topPx += height
 
             bottomPx += height
+
+            // skip merged cells
             row += cell.attrs.rowspan - 1
           }
 
           // map col
           for (let col = 0; col < right; col++) {
-            const pos = tableMap.map[col]
+            // calculate from row of rect top
+            const pos = tableMap.map[col + tableWidth * top]
             const cell = table.nodeAt(pos)
             const {width} = view.nodeDOM(tableStart + pos).getBoundingClientRect()
 
             if (col < left) leftPx += width
 
             rightPx += width
+
+            // skip merged cells
             col += cell.attrs.colspan - 1
           }
 
@@ -69,10 +69,10 @@ export function drawCellSelection({ allowTableNodeSelection = false } = {}) {
           const widget = document.createElement("div")
 
           widget.className = 'ProseMirror-widget-drawCellSelection'
-          widget.style.width = `${rightPx - leftPx}px`
-          widget.style.height = `${bottomPx - topPx}px`
-          widget.style.left = `${leftPx}px`
-          widget.style.top = `${topPx}px`
+          widget.style.width = rightPx - leftPx + 'px'
+          widget.style.height = bottomPx - topPx + 'px'
+          widget.style.left = leftPx + 'px'
+          widget.style.top = topPx + 'px'
 
           return widget
         }))
