@@ -45,12 +45,12 @@ function drawCellSelection(state) {
   let start = $anchorCell.start(-1)
   let rect = map.rectBetween($anchorCell.pos - start, $headCell.pos - start)
 
-  window.sel = sel
-  window.table = table
-  window.map = map
-  window.rect = rect
+  // window.sel = sel
+  // window.table = table
+  // window.map = map
+  // window.rect = rect
 
-  console.log('drawCellSelection')
+  // console.log('drawCellSelection')
 
   if (sel.isRowSelection()) {
     // Decoration.widget(start)
@@ -59,10 +59,9 @@ function drawCellSelection(state) {
 
     let widget = document.createElement("div")
     widget.innerText = 1231231123
-    console.log(widget)
-    cells.push(Decoration.widget(start - 1 + table.nodeSize - 1, (view, getPos) => {
-      console.log('view', view)
-      console.log('getPos', getPos, getPos())
+    // console.log(widget)
+    cells.push(Decoration.widget(start - 1 + table.nodeSize - 1, (view) => {
+      // console.log('view', view)
       return widget
     }))
 

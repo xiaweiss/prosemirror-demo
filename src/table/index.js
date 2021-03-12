@@ -213,49 +213,78 @@ function addTableToEnd (state, dispatch, { rowsCount, colsCount, withHeaderRow, 
   dispatch(tr)
 }
 
-function selectRow (state, dispatch, row) {
+function selectRow (state, dispatch, anchorRow, headRow = anchorRow) {
   if (!isInTable(state)) return false
 
   const {tr, doc} = state
-  let selection
+  let $anchorCell, $headCell
 
-  if (row >= 0) {
+  // when pararm choice a row num
+  if (anchorRow !== undefined) {
     const $pos = selectionCell(state)
     const table = $pos.node(-1)
     const tableStart = $pos.start(-1)
+    const map = TableMap.get(table)
 
-    let rowPos = 0
-    for (let i = 0; i < row; i++) rowPos += table.child(i).nodeSize
+    // check anchorRow and headRow in table ranges
+    if (!(
+      Math.min(anchorRow, headRow) >= 0 &&
+      Math.max(anchorRow, headRow) < map.height
+    )) return false
 
-    selection = NodeSelection.create(doc, tableStart + rowPos)
+    $anchorCell = doc.resolve(tableStart + map.positionAt(anchorRow, 0, table))
+    $headCell = anchorRow === headRow ? $anchorCell : doc.resolve(tableStart + map.positionAt(headRow, 0, table))
+
+  // when selected cell
   } else if (state.selection instanceof CellSelection) {
-    const {$anchorCell, $headCell} = state.selection
-    selection = CellSelection.rowSelection($anchorCell, $headCell)
+    $anchorCell = state.selection.$anchorCell
+    $headCell =  state.selection.$headCell
 
+  // when selected text
   } else {
-    const $cell = selectionCell(state)
-    selection = CellSelection.rowSelection($cell)
+    $headCell = $anchorCell = selectionCell(state)
   }
 
+  const selection = CellSelection.rowSelection($anchorCell, $headCell)
   tr.setSelection(selection)
   dispatch(tr)
 }
 
-function selectCol (state, dispatch, colNum) {
+function selectCol (state, dispatch, anchorCol, headCol = anchorCol) {
   if (!isInTable(state)) return false
 
-  const tr = state.tr
+  const {tr, doc} = state
+  let $anchorCell, $headCell
 
-  if (state.selection instanceof CellSelection) {
-    const {$anchorCell, $headCell} = state.selection
-    const selection = CellSelection.colSelection($anchorCell, $headCell)
-    tr.setSelection(selection)
+  // when pararm choice a col num
+  if (anchorCol != undefined) {
+    const $pos = selectionCell(state)
+    const table = $pos.node(-1)
+    const tableStart = $pos.start(-1)
+    const map = TableMap.get(table)
+
+    // check anchorCol and headCol in table ranges
+    if (anchorCol >= map.width || headCol >= map.width) return false
+    if (!(
+      Math.min(anchorCol, headCol) >= 0 &&
+      Math.max(anchorCol, headCol) < map.width
+    )) return false
+
+    $anchorCell = doc.resolve(tableStart + map.positionAt(0, anchorCol, table))
+    $headCell = headCol === anchorCol ? $anchorCell : doc.resolve(tableStart + map.positionAt(0, headCol, table))
+
+  // when selected cell
+  } else if (state.selection instanceof CellSelection) {
+    $anchorCell = state.selection
+    $headCell = state.selection
+
+  // when selected text
   } else {
-    const $cell = selectionCell(state)
-    const selection = CellSelection.colSelection($cell)
-    tr.setSelection(selection)
+    $headCell = $anchorCell = selectionCell(state)
   }
 
+  const selection = CellSelection.colSelection($anchorCell, $headCell)
+  tr.setSelection(selection)
   dispatch(tr)
 }
 
@@ -273,8 +302,8 @@ window.commands = {
   addRowBefore: () => addRowBefore(view.state, dispatch),
   addRowAfter: () => addRowAfter(view.state, dispatch),
   deleteRow: () => deleteRow(view.state, dispatch),
-  selectRow: (row) => selectRow(view.state, dispatch, row),
-  selectCol: () => selectCol(view.state, dispatch),
+  selectRow: (anchorRow, headRow) => selectRow(view.state, dispatch, anchorRow, headRow),
+  selectCol: (anchorCol, headCol) => selectCol(view.state, dispatch, anchorCol, headCol),
 
   mergeCells: () => mergeCells(view.state, dispatch),
   splitCell: () => splitCell(view.state, dispatch),
