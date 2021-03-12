@@ -91,7 +91,7 @@ import {gapCursor} from 'prosemirror-gapcursor'
 import {keymap}  from "prosemirror-keymap"
 import {baseKeymap, deleteSelection} from "prosemirror-commands"
 import {undo, redo, history} from "prosemirror-history"
-import {tableEditor} from './tableEditor'
+import {drawCellSelection} from './drawCellSelection'
 
 // let doc = schema.nodeFromJSON(json)
 let doc = DOMParser.fromSchema(schema).parse(content)
@@ -109,7 +109,7 @@ let state = EditorState.create({
     }),
     columnResizing({ cellMinWidth: 80 }),
     tableEditing(),
-    tableEditor()
+    drawCellSelection()
   ]
 })
 let fix = fixTables(state)

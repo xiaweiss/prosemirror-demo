@@ -1,34 +1,18 @@
-/* Give selected rows a green overlay */
-/* .ProseMirror tr {
+.ProseMirror .selectedCell:after {
+  display: none;
+}
+
+.ProseMirror table,
+.ProseMirror tbody {
   position: relative;
 }
 
-/* Give selected cells a blue overlay */
-/* .ProseMirror .selectedRow:after {
-  z-index: 2;
+.ProseMirror-widget-drawCellSelection {
   position: absolute;
-  content: "";
-  left: 0; right: 0; top: 0; bottom: 0;
-  background: #3DB24B;
-  pointer-events: none;
-} */
-
-/* .ProseMirror .selectedRow::after {
-  z-index: 2;
-  position: absolute;
-  content: "";
-  left: 0; right: 0; top: 0; bottom: 0;
-  border: 1px solid #3DB24B;
-  border-bottom: none;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  background: rgba(61, 178, 75, 0.04);
+  border: 2px solid #3DB24B;;
   pointer-events: none;
 }
-
-.ProseMirror .selectedRow + tr::after {
-  z-index: 2;
-  position: absolute;
-  content: "";
-  left: 0; right: 0; top: 0; bottom: 0;
-  border-top: 1px solid #3DB24B;
-  border-bottom: none;
-  pointer-events: none;
-} */
