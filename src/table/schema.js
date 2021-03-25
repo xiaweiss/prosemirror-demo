@@ -602,8 +602,8 @@ nodes[T.TABLE_ROW] = {
 }
 
 nodes[T.TABLE_CELL] = {
-  // content: `(${T.PARAGRAPH} | ${T.BULLETED_LIST} | ${T.NUMBERED_LIST})*`,
-  content: 'block+',
+  content: `(${T.PARAGRAPH} | ${T.BULLETED_LIST} | ${T.NUMBERED_LIST})+`,
+  // content: 'block+',
   attrs: {
     colspan: { default: 1 },
     rowspan: { default: 1 },

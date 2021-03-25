@@ -66,6 +66,7 @@ let schema = new Schema({
   nodes: baseSchema.spec.nodes.append(tableNodes({
     tableGroup: "block",
     cellContent: "block+",
+    // cellContent: "paragraph+",
     cellAttributes: {
       background: {
         default: null,
