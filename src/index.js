@@ -10,6 +10,7 @@ import './table'
 // import './9-example-dino'
 // import './10-example-tooltips'
 // import './11-schema'
+// import './simplebar'
 
 import applyDevTools from "prosemirror-dev-tools"
-applyDevTools(window.view);
+window.view && applyDevTools(window.view);

@@ -25,6 +25,13 @@ const content = createElement(`
   <tr><td>Four</td><td>Five</td><td>Six</td><td></td></tr>
   <tr><td></td><td></td><td></td></tr>
 </table>
+
+<p>The table 2:</p>
+<table class="table_prosemirror">
+  <tr><td>One</td><td>Two</td><td>Three</td><td></td></tr>
+  <tr><td>Four</td><td>Five</td><td>Six</td><td></td></tr>
+  <tr><td></td><td></td><td></td></tr>
+</table>
 `)
 
 // const content = createElement(`
@@ -93,6 +100,7 @@ import {keymap}  from "prosemirror-keymap"
 import {baseKeymap, deleteSelection} from "prosemirror-commands"
 import {undo, redo, history} from "prosemirror-history"
 import {drawCellSelection} from './drawCellSelection'
+import {tableSimplebar} from './tableSimplebar'
 
 // let doc = schema.nodeFromJSON(json)
 let doc = DOMParser.fromSchema(schema).parse(content)
@@ -110,7 +118,8 @@ let state = EditorState.create({
     }),
     columnResizing({ cellMinWidth: 80 }),
     tableEditing(),
-    drawCellSelection()
+    drawCellSelection(),
+    tableSimplebar()
   ]
 })
 let fix = fixTables(state)

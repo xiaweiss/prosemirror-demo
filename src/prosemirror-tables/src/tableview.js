@@ -18,6 +18,10 @@ export class TableView {
   }
 
   ignoreMutation(record) {
+    return true
+    const result = record.type == "attributes" && (record.target == this.table || this.colgroup.contains(record.target))
+    console.log('ignoreMutation', result, record)
+    return result
     return record.type == "attributes" && (record.target == this.table || this.colgroup.contains(record.target))
   }
 }
