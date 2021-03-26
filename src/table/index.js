@@ -101,6 +101,7 @@ import {baseKeymap, deleteSelection} from "prosemirror-commands"
 import {undo, redo, history} from "prosemirror-history"
 import {drawCellSelection} from './drawCellSelection'
 import {tableSimplebar} from './tableSimplebar'
+import {TableView} from './tableview'
 
 // let doc = schema.nodeFromJSON(json)
 let doc = DOMParser.fromSchema(schema).parse(content)
@@ -116,7 +117,7 @@ let state = EditorState.create({
       "Tab": goToNextCell(1),
       "Shift-Tab": goToNextCell(-1)
     }),
-    columnResizing({ cellMinWidth: 80 }),
+    columnResizing({ cellMinWidth: 80 , View: TableView}),
     tableEditing(),
     drawCellSelection(),
     tableSimplebar()
@@ -127,8 +128,6 @@ if (fix) state = state.apply(fix.setMeta("addToHistory", false))
 
 document.execCommand("enableObjectResizing", false, false)
 document.execCommand("enableInlineTableEditing", false, false)
-
-import {TableView} from './tableview'
 
 const view = new EditorView(document.querySelector("#editor"), {
   state,
