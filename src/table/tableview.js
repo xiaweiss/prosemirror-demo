@@ -1,12 +1,13 @@
 import Simplebar from 'simplebar'
-import 'simplebar/dist/simplebar.css';
+import 'simplebar/dist/simplebar.css'
+import './tableview.css'
 
 export class TableView {
   constructor(node, cellMinWidth) {
     this.node = node
     this.cellMinWidth = cellMinWidth
     this.dom = document.createElement("div")
-    this.dom.className = "tableWrapper"
+    this.dom.className = "ProseMirror-table-wrapper"
     this.dom.setAttribute('data-simplebar', '')
     this.dom.setAttribute('data-simplebar-auto-hide', false)
     this.table = this.dom.appendChild(document.createElement("table"))

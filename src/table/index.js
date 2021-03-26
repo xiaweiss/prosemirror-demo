@@ -4,7 +4,7 @@ import 'prosemirror-example-setup/style/style.css'
 import 'prosemirror-tables/style/tables.css'
 import 'prosemirror-gapcursor/style/gapcursor.css'
 
-import '../7-tables.css'
+// import '../7-tables.css'
 import './style.css'
 
 
@@ -101,6 +101,7 @@ import {keymap}  from "prosemirror-keymap"
 import {baseKeymap, deleteSelection} from "prosemirror-commands"
 import {undo, redo, history} from "prosemirror-history"
 import {tableDrawCellSelection} from './tableDrawCellSelection'
+import {tablemenu} from './tablemenu'
 import {TableView} from './tableview'
 
 // let doc = schema.nodeFromJSON(json)
@@ -119,7 +120,8 @@ let state = EditorState.create({
     }),
     columnResizing({ cellMinWidth: 80 , View: TableView}),
     tableEditing(),
-    tableDrawCellSelection()
+    tableDrawCellSelection(),
+    tablemenu()
   ]
 })
 let fix = fixTables(state)
