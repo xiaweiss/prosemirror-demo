@@ -1,9 +1,14 @@
+import Simplebar from 'simplebar'
+import 'simplebar/dist/simplebar.css';
+
 export class TableView {
   constructor(node, cellMinWidth) {
     this.node = node
     this.cellMinWidth = cellMinWidth
     this.dom = document.createElement("div")
     this.dom.className = "tableWrapper"
+    this.dom.setAttribute('data-simplebar', '')
+    this.dom.setAttribute('data-simplebar-auto-hide', false)
     this.table = this.dom.appendChild(document.createElement("table"))
     this.colgroup = this.table.appendChild(document.createElement("colgroup"))
     updateColumns(node, this.colgroup, this.table, cellMinWidth)
@@ -18,7 +23,19 @@ export class TableView {
   }
 
   ignoreMutation(record) {
-    return record.type == "attributes" && (record.target == this.table || this.colgroup.contains(record.target))
+    // ignore wrapper
+    if (record.target == this.dom && (record.type == "attributes" || record.type == "childList")) {
+      return true
+    }
+
+    // ignore simplebar
+    if (record.type == "attributes" && record.target.classList.value.indexOf('simplebar') > -1) {
+      return true
+    }
+
+    const result = record.type == "attributes" && (record.target == this.table || this.colgroup.contains(record.target))
+
+    return result
   }
 }
 

@@ -2,11 +2,11 @@ import {Decoration, DecorationSet} from "prosemirror-view"
 import {Plugin, PluginKey} from "prosemirror-state"
 import {CellSelection, TableMap, selectedRect} from "../prosemirror-tables/src"
 
-export const drawCellSelectionKey = new PluginKey("drawCellSelection")
+export const tableDrawCellSelectionKey = new PluginKey("tableDrawCellSelection")
 
-export function drawCellSelection({ allowTableNodeSelection = false } = {}) {
+export function tableDrawCellSelection() {
   return new Plugin({
-    key: drawCellSelectionKey,
+    key: tableDrawCellSelectionKey,
 
     state: {
       init() { return null },

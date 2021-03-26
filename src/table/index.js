@@ -87,11 +87,12 @@ let schema = new Schema({
 
 import {
   tableEditing,
-  columnResizing,
+  // columnResizing,
   fixTables,
   isInTable,
   tableNodeTypes
 } from '../prosemirror-tables/src'
+import {columnResizing} from './columnresizing'
 // import {schema} from './schema'
 
 import {dropCursor} from 'prosemirror-dropcursor'
@@ -99,8 +100,7 @@ import {gapCursor} from 'prosemirror-gapcursor'
 import {keymap}  from "prosemirror-keymap"
 import {baseKeymap, deleteSelection} from "prosemirror-commands"
 import {undo, redo, history} from "prosemirror-history"
-import {drawCellSelection} from './drawCellSelection'
-import {tableSimplebar} from './tableSimplebar'
+import {tableDrawCellSelection} from './tableDrawCellSelection'
 import {TableView} from './tableview'
 
 // let doc = schema.nodeFromJSON(json)
@@ -119,8 +119,7 @@ let state = EditorState.create({
     }),
     columnResizing({ cellMinWidth: 80 , View: TableView}),
     tableEditing(),
-    drawCellSelection(),
-    tableSimplebar()
+    tableDrawCellSelection()
   ]
 })
 let fix = fixTables(state)
