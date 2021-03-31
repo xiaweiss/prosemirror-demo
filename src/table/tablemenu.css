@@ -13,15 +13,22 @@
   cursor: pointer;
 }
 
+.Prosemirror-tablemenu-hr {
+  height: 1px;
+  background:#EAEEEF;
+  margin: 4px 14px;
+}
+
 .Prosemirror-tablemenu-item {
+  position: relative;
   display: flex;
   align-items: center;
   height: 36px;
-  line-height: 30px;
   padding-left: 23px;
+  font-size: 14px;
+  line-height: 30px;
   color: #303030;
   cursor: pointer;
-  font-size: 14px;
 }
 
 .Prosemirror-tablemenu-item:hover {
@@ -29,14 +36,43 @@
 }
 
 .Prosemirror-tablemenu-item[disabled] {
-  opacity: 0.4;
+  color: rgba(48,48,48, 0.4);
 }
 .Prosemirror-tablemenu-item[disabled]:hover {
   background: #fff;
 }
 
-.Prosemirror-tablemenu-hr {
-  height: 1px;
-  background:#EAEEEF;
-  margin: 4px 14px;
+.Prosemirror-tablemenu-item[disabled]:hover .Prosemirror-tablemenu-item-hovertip {
+  display: block;
+}
+
+.Prosemirror-tablemenu-item-hovertip {
+  position: absolute;
+  right: 100%;
+  top: 0;
+  bottom: 0;
+  display: none;
+  padding: 0 5px;
+  margin: 4px;
+  background: #fff;
+  box-shadow: 0 0 14px 0 rgba(214,216,218, 0.4);
+  border-radius: 5px;
+  font-size: 13px;
+  color: #303030;
+  white-space: nowrap;
+}
+
+.Prosemirror-tablemenu-item-hovertip::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: 0;
+  bottom: 0;
+  display: block;
+  width: 0;
+  height: 0;
+  margin: auto 0;
+  border-left: 4px solid #fff;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
 }

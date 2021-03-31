@@ -3,6 +3,18 @@ import {Plugin, PluginKey} from "prosemirror-state"
 import {CellSelection, TableMap, selectedRect} from "../prosemirror-tables/src"
 import './tablemenu.css'
 
+import {
+  addRowBefore,
+  addRowAfter,
+  addColumnBefore,
+  addColumnAfter,
+  mergeCells,
+  splitCell,
+  deleteRow,
+  deleteColumn
+} from './commands'
+import {cellWrapping} from '../prosemirror-tables/src/util'
+
 export const tablemenuKey = new PluginKey("tablemenu")
 
 export function tablemenu() {
@@ -29,26 +41,76 @@ class tableMenuView {
   }
 
   data () {
-    const {state} = this.view
-    // TODO
+    const { state, dispatch } = this.view
+    const sel = state.selection
+
     return [
-      {'text': '剪切'},
-      {'text': '复制'},
-      {'text': '粘贴', disabled: true},
-      {'text': '清空所选区域'},
-      {'hr': true},
-      {'text': '剪切'},
-      {'text': '剪切'},
-      {'text': '向上插入 1 行'},
-      {'text': '向下插入 1 行'},
-      {'text': '向左插入 1 列'},
-      {'text': '向右插入 1 列'},
-      {'hr': true},
-      {'text': '合并单元格'},
-      {'text': '拆分单元格'},
-      {'hr': true},
-      {'text': '删除选中行'},
-      {'text': '删除选中列'}
+      {
+        text: '剪切',
+        command: () => document.execCommand('cut')
+      },
+      {
+        text: '复制',
+        command: () => document.execCommand('copy')
+      },
+      {
+        text: '粘贴',
+        disabled: true,
+        hovertip: '请使用 ⌘+V 粘贴',
+        command: () => document.execCommand('insertHTML')
+      },
+      {
+        text: '清空所选区域',
+        disabled: true
+      },
+      { hr: true },
+      {
+        text: '向上插入 1 行',
+        command: () => addRowBefore(state, dispatch)
+      },
+      {
+        text: '向下插入 1 行',
+        command: () => addRowAfter(state, dispatch)
+      },
+      {
+        text: '向左插入 1 列',
+        command: () => addColumnBefore (state, dispatch)
+      },
+      {
+        text: '向右插入 1 列',
+        command: () => addColumnAfter(state, dispatch)
+      },
+      { hr: true },
+      {
+        text: '合并单元格',
+        disabled: !(sel instanceof CellSelection) || sel.$anchorCell.pos === sel.$headCell.pos,
+        command: () => mergeCells(state, dispatch)
+      },
+      {
+        text: '拆分单元格',
+        disabled: function () {
+          let cellNode
+          if (sel instanceof CellSelection) {
+            if (sel.$anchorCell.pos != sel.$headCell.pos) return true
+            cellNode = sel.$anchorCell.nodeAfter
+          } else {
+            cellNode = cellWrapping(sel.$from)
+            if (!cellNode) return true
+          }
+          if (cellNode.attrs.colspan == 1 && cellNode.attrs.rowspan == 1) {return true}
+          return false
+        }(),
+        command: () => splitCell(state, dispatch)
+      },
+      { hr: true },
+      {
+        text: '删除选中行',
+        command: () => deleteRow(state, dispatch)
+      },
+      {
+        text: '删除选中列',
+        command: () => deleteColumn(state, dispatch)
+      }
     ]
   }
 
@@ -79,6 +141,7 @@ class tableMenuView {
   }
 
   render () {
+    console.log('render')
     const fragment = document.createDocumentFragment()
     const data = this.data()
 
@@ -86,7 +149,16 @@ class tableMenuView {
       const div = document.createElement('div')
       div.classList.add(`Prosemirror-tablemenu-${item.hr ? 'hr' : 'item'}`)
       div.textContent = item.text || ''
+      div.addEventListener('click', () => {
+        item.command()
+        this.hideContextmenu()
+      })
       if(item.disabled) div.setAttribute('disabled', '')
+      if(item.hovertip) {
+        const hoverDiv = div.appendChild(document.createElement('div'))
+        hoverDiv.classList.add('Prosemirror-tablemenu-item-hovertip')
+        hoverDiv.textContent = item.hovertip
+      }
       fragment.appendChild(div);
     })
 

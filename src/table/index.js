@@ -1,16 +1,39 @@
 import 'prosemirror-view/style/prosemirror.css'
-import 'prosemirror-menu/style/menu.css'
-import 'prosemirror-example-setup/style/style.css'
+// import 'prosemirror-menu/style/menu.css'
+// import 'prosemirror-example-setup/style/style.css'
 import 'prosemirror-tables/style/tables.css'
 import 'prosemirror-gapcursor/style/gapcursor.css'
 
-// import '../7-tables.css'
 import './style.css'
 
 
 import {EditorView} from "prosemirror-view"
 import {EditorState, Selection, NodeSelection, TextSelection, Node} from "prosemirror-state"
 import {DOMParser, Schema}  from "prosemirror-model"
+import {
+  addTable,
+  addTableToEnd,
+  deleteTable,
+  addColumnAfter,
+  addColumnBefore,
+  deleteColumn,
+  addRowAfter,
+  addRowBefore,
+  selectRow,
+  selectCol,
+  deleteRow,
+  mergeCells,
+  splitCell,
+  setCellAttr,
+  toggleHeaderRow,
+  toggleHeaderColumn,
+  toggleHeaderCell,
+  goToNextCell,
+  isInTable,
+  TableMap,
+  deleteSelection
+} from './commands'
+
 /**
  * element
  */
@@ -67,7 +90,7 @@ const content = createElement(`
  * schema
  */
 import {schema as baseSchema} from "./schema-basic"
-import {tableNodes, CellSelection, selectionCell, TableMap} from '../prosemirror-tables/src'
+import {tableNodes, CellSelection, selectionCell} from '../prosemirror-tables/src'
 
 let schema = new Schema({
   nodes: baseSchema.spec.nodes.append(tableNodes({
@@ -89,7 +112,6 @@ import {
   tableEditing,
   // columnResizing,
   fixTables,
-  isInTable,
   tableNodeTypes
 } from '../prosemirror-tables/src'
 import {columnResizing} from './columnresizing'
@@ -98,7 +120,7 @@ import {columnResizing} from './columnresizing'
 import {dropCursor} from 'prosemirror-dropcursor'
 import {gapCursor} from 'prosemirror-gapcursor'
 import {keymap}  from "prosemirror-keymap"
-import {baseKeymap, deleteSelection} from "prosemirror-commands"
+import {baseKeymap} from "prosemirror-commands"
 import {undo, redo, history} from "prosemirror-history"
 import {tableDrawCellSelection} from './tableDrawCellSelection'
 import {tablemenu} from './tablemenu'
@@ -118,6 +140,7 @@ let state = EditorState.create({
       "Tab": goToNextCell(1),
       "Shift-Tab": goToNextCell(-1)
     }),
+    // columnResizing({ cellMinWidth: 80 , View: TableView}),
     columnResizing({ cellMinWidth: 80 , View: TableView}),
     tableEditing(),
     tableDrawCellSelection(),
@@ -132,175 +155,18 @@ document.execCommand("enableInlineTableEditing", false, false)
 
 const view = new EditorView(document.querySelector("#editor"), {
   state,
-  // nodeViews: {
-  //   table: (node, view, getPos) => new TableView(node, view, getPos)
-  // }
+  nodeViews: {
+    table: (node, view, getPos) => new TableView(node, view, getPos)
+  }
 })
 window.view = view
 
-
-import {
-  addColumnAfter,
-  addColumnBefore,
-  deleteColumn,
-  addRowAfter,
-  addRowBefore,
-  deleteRow,
-  mergeCells,
-  splitCell,
-  setCellAttr,
-  toggleHeaderRow,
-  toggleHeaderColumn,
-  toggleHeaderCell,
-  goToNextCell,
-  deleteTable,
-} from '../prosemirror-tables/src/commands'
 
 // import { createTable } from '../tiptap-utils/src'
 
 const {dispatch} = view
 
-function createTable (state, rowsCount, colsCount, withHeaderRow, cellContent) {
-  const types = tableNodeTypes(state.schema)
-  const headerCells = []
-  const cells = []
-  const createCell = (cellType, cellContent) => cellContent ? cellType.createChecked(null, cellContent) : cellType.createAndFill()
-
-  for (let index = 0; index < colsCount; index += 1) {
-    const cell = createCell(types.cell, cellContent)
-
-    if (cell) {
-      cells.push(cell)
-    }
-
-    if (withHeaderRow) {
-      const headerCell = createCell(types.header_cell, cellContent)
-
-      if (headerCell) {
-        headerCells.push(headerCell)
-      }
-    }
-  }
-
-  const rows = []
-
-  for (let index = 0; index < rowsCount; index += 1) {
-    rows.push(types.row.createChecked(null, withHeaderRow && index === 0 ? headerCells : cells))
-  }
-
-  return types.table.createChecked(null, rows)
-}
-
-function addTable (state, dispatch, { rowsCount, colsCount, withHeaderRow, cellContent }, ) {
-  const offset = state.tr.selection.anchor + 1
-
-  const nodes = createTable(state, rowsCount, colsCount, withHeaderRow, cellContent)
-  const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView()
-  const resolvedPos = tr.doc.resolve(offset)
-
-  tr.setSelection(TextSelection.near(resolvedPos))
-
-  dispatch(tr)
-}
-
-function addTableToEnd (state, dispatch, { rowsCount, colsCount, withHeaderRow, cellContent }, ) {
-  let tr = state.tr
-
-  // get block end position
-  const end = tr.selection.$head.end(1) // param 1 is node deep
-  const resolvedEnd = tr.doc.resolve(end)
-
-  // move cursor to the end, then insert table
-  const nodes = createTable(state, rowsCount, colsCount, withHeaderRow, cellContent)
-  tr.setSelection(TextSelection.near(resolvedEnd))
-  tr = tr.replaceSelectionWith(nodes).scrollIntoView()
-
-  // move cursor into table
-  const offset = end + 1
-  const resolvedPos = tr.doc.resolve(offset)
-  tr.setSelection(TextSelection.near(resolvedPos))
-
-  dispatch(tr)
-}
-
-function selectRow (state, dispatch, anchorRow, headRow = anchorRow) {
-  if (!isInTable(state)) return false
-
-  const {tr, doc} = state
-  let $anchorCell, $headCell
-
-  // when pararm choice a row num
-  if (anchorRow !== undefined) {
-    const $pos = selectionCell(state)
-    const table = $pos.node(-1)
-    const tableStart = $pos.start(-1)
-    const map = TableMap.get(table)
-
-    // check anchorRow and headRow in table ranges
-    if (!(
-      Math.min(anchorRow, headRow) >= 0 &&
-      Math.max(anchorRow, headRow) < map.height
-    )) return false
-
-    $anchorCell = doc.resolve(tableStart + map.positionAt(anchorRow, 0, table))
-    $headCell = anchorRow === headRow ? $anchorCell : doc.resolve(tableStart + map.positionAt(headRow, 0, table))
-
-  // when selected cell
-  } else if (state.selection instanceof CellSelection) {
-    $anchorCell = state.selection.$anchorCell
-    $headCell =  state.selection.$headCell
-
-  // when selected text
-  } else {
-    $headCell = $anchorCell = selectionCell(state)
-  }
-
-  const selection = CellSelection.rowSelection($anchorCell, $headCell)
-  tr.setSelection(selection)
-  dispatch(tr)
-}
-
-function selectCol (state, dispatch, anchorCol, headCol = anchorCol) {
-  if (!isInTable(state)) return false
-
-  const {tr, doc} = state
-  let $anchorCell, $headCell
-
-  // when pararm choice a col num
-  if (anchorCol != undefined) {
-    const $pos = selectionCell(state)
-    const table = $pos.node(-1)
-    const tableStart = $pos.start(-1)
-    const map = TableMap.get(table)
-
-    // check anchorCol and headCol in table ranges
-    if (anchorCol >= map.width || headCol >= map.width) return false
-    if (!(
-      Math.min(anchorCol, headCol) >= 0 &&
-      Math.max(anchorCol, headCol) < map.width
-    )) return false
-
-    $anchorCell = doc.resolve(tableStart + map.positionAt(0, anchorCol, table))
-    $headCell = headCol === anchorCol ? $anchorCell : doc.resolve(tableStart + map.positionAt(0, headCol, table))
-
-  // when selected cell
-  } else if (state.selection instanceof CellSelection) {
-    $anchorCell = state.selection
-    $headCell = state.selection
-
-  // when selected text
-  } else {
-    $headCell = $anchorCell = selectionCell(state)
-  }
-
-  const selection = CellSelection.colSelection($anchorCell, $headCell)
-  tr.setSelection(selection)
-  dispatch(tr)
-}
-
-
 window.commands = {
-  getEndPos: () => getEndPos(view.state, dispatch),
   addTableToEnd: (rowsCount = 3, colsCount = 3, withHeaderRow) => addTableToEnd(view.state, dispatch, { rowsCount, colsCount, withHeaderRow }),
   addTable: (rowsCount = 3, colsCount = 3, withHeaderRow) => addTable(view.state, dispatch, { rowsCount, colsCount, withHeaderRow }),
   deleteTable: () => deleteTable(view.state, dispatch),

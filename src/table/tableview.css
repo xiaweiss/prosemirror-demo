@@ -1,22 +1,17 @@
-.ProseMirror-menubar-wrapper {
-  border: 1px solid silver;
-  outline: none;
+
+.ProseMirror .ProseMirror-table-wrapper {
+  white-space: normal;
+  margin: 1em 0;
 }
-.ProseMirror {
-  padding: 5px 15px;
-}
+
 .ProseMirror table {
   margin: 0;
+  white-space: pre-wrap;
+  white-space: break-spaces;
 }
+
 .ProseMirror th, .ProseMirror td {
   min-width: 1em;
   border: 1px solid #ddd;
   padding: 3px 5px;
-}
-.ProseMirror .ProseMirror-tableWrapper {
-  margin: 1em 0;
-}
-.ProseMirror th {
-  font-weight: bold;
-  text-align: left;
 }
