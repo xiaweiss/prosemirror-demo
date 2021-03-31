@@ -14,6 +14,7 @@ import {
   deleteColumn
 } from './commands'
 import {cellWrapping} from '../prosemirror-tables/src/util'
+import { deleteSelection } from 'prosemirror-commands'
 
 export const tablemenuKey = new PluginKey("tablemenu")
 
@@ -61,7 +62,8 @@ class tableMenuView {
       },
       {
         text: '清空所选区域',
-        disabled: true
+        disabled: !(sel instanceof CellSelection),
+        command: () => deleteSelection(state, dispatch)
       },
       { hr: true },
       {
@@ -149,11 +151,16 @@ class tableMenuView {
       const div = document.createElement('div')
       div.classList.add(`Prosemirror-tablemenu-${item.hr ? 'hr' : 'item'}`)
       div.textContent = item.text || ''
-      div.addEventListener('click', () => {
-        item.command()
-        this.hideContextmenu()
-      })
-      if(item.disabled) div.setAttribute('disabled', '')
+
+      if (item.disabled) {
+        div.setAttribute('disabled', '')
+      } else {
+        div.addEventListener('click', () => {
+          item.command()
+          this.hideContextmenu()
+        })
+      }
+
       if(item.hovertip) {
         const hoverDiv = div.appendChild(document.createElement('div'))
         hoverDiv.classList.add('Prosemirror-tablemenu-item-hovertip')

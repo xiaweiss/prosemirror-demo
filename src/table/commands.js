@@ -17,8 +17,6 @@ import {
 
 import { isInTable } from '../prosemirror-tables/src/util'
 import { TableMap } from '../prosemirror-tables/src/tablemap'
-import { deleteSelection } from 'prosemirror-commands'
-
 
 export function removeRow(tr, {map, table, tableStart}, row) {
   let rowPos = 0
@@ -231,6 +229,5 @@ export {
   goToNextCell,
 
   isInTable,
-  TableMap,
-  deleteSelection,
+  TableMap
 }
