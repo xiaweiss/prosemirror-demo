@@ -1,0 +1,18 @@
+.ProseMirror .selectedCell:after {
+  display: none;
+}
+
+.ProseMirror table,
+.ProseMirror tbody {
+  position: relative;
+}
+
+.ProseMirror-drawCellSelection {
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  background: rgba(61, 178, 75, 0.04);
+  border: 2px solid #3DB24B;;
+  pointer-events: none;
+}

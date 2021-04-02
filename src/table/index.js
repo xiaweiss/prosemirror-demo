@@ -30,9 +30,10 @@ import {
   toggleHeaderCell,
   goToNextCell,
   isInTable,
-  TableMap,
-  deleteSelection
+  TableMap
 } from './commands'
+
+import {deleteSelection} from 'prosemirror-commands'
 
 /**
  * element
@@ -124,6 +125,7 @@ import {baseKeymap} from "prosemirror-commands"
 import {undo, redo, history} from "prosemirror-history"
 import {tableDrawCellSelection} from './tableDrawCellSelection'
 import {tablemenu} from './tablemenu'
+import {tablesidebar} from './tablesidebar'
 import {TableView} from './tableview'
 
 // let doc = schema.nodeFromJSON(json)
@@ -144,6 +146,7 @@ let state = EditorState.create({
     columnResizing({ cellMinWidth: 80 , View: TableView}),
     tableEditing(),
     tableDrawCellSelection(),
+    tablesidebar(),
     tablemenu()
   ]
 })

@@ -1,0 +1,27 @@
+.ProseMirror-tablesidbar {
+  position: relative;
+}
+
+.ProseMirror-tablesidbar-select-all {
+  position: absolute;
+  left: -21px;
+  top: -21px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 16px;
+  height: 16px;
+  background: #DDD;
+  border-radius: 50%;
+}
+
+.ProseMirror-tablesidbar-select-all::after {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 2px;
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #fff;
+}
+
+

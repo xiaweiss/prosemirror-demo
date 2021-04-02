@@ -1,6 +1,7 @@
 import {Decoration, DecorationSet} from "prosemirror-view"
 import {Plugin, PluginKey} from "prosemirror-state"
-import {CellSelection, TableMap, selectedRect} from "../prosemirror-tables/src"
+import {CellSelection, selectedRect} from "../prosemirror-tables/src"
+import './tableDrawCellSelection.css'
 
 export const tableDrawCellSelectionKey = new PluginKey("tableDrawCellSelection")
 
@@ -68,7 +69,7 @@ export function tableDrawCellSelection() {
 
           const widget = document.createElement("div")
 
-          widget.className = 'ProseMirror-widget-drawCellSelection'
+          widget.className = 'ProseMirror-drawCellSelection'
           widget.style.width = rightPx - leftPx + 'px'
           widget.style.height = bottomPx - topPx + 'px'
           widget.style.left = leftPx + 'px'

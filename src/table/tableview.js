@@ -8,9 +8,16 @@ export class TableView {
     this.cellMinWidth = cellMinWidth
     this.dom = document.createElement("div")
     this.dom.className = "ProseMirror-table-wrapper"
-    this.dom.setAttribute('data-simplebar', '')
-    this.dom.setAttribute('data-simplebar-auto-hide', false)
-    this.table = this.dom.appendChild(document.createElement("table"))
+
+    this.before = this.dom.appendChild(document.createElement("div"))
+    this.before.className = "ProseMirror-table-before"
+    this.before.innerHTML = "header<br>header2"
+
+    this.simplebar = this.dom.appendChild(document.createElement('div'))
+    this.simplebar.setAttribute('data-simplebar', '')
+    this.simplebar.setAttribute('data-simplebar-auto-hide', false)
+
+    this.table = this.simplebar.appendChild(document.createElement("table"))
     this.colgroup = this.table.appendChild(document.createElement("colgroup"))
     updateColumns(node, this.colgroup, this.table, cellMinWidth)
     this.contentDOM = this.table.appendChild(document.createElement("tbody"))
@@ -24,8 +31,10 @@ export class TableView {
   }
 
   ignoreMutation(record) {
+    console.log('ignoreMutation', record, record.type == "attributes" && record.target.classList.value.indexOf('simplebar') > -1)
+
     // ignore wrapper
-    if (record.target == this.dom && (record.type == "attributes" || record.type == "childList")) {
+    if (record.target == this.simplebar && (record.type == "attributes" || record.type == "childList")) {
       return true
     }
 

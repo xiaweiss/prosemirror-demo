@@ -10,20 +10,16 @@
       font-family: "Avenir","Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
     }
 
+    #editor {
+      margin: 20px;
+    }
+
     .ProseMirror {
       outline: none;
     }
   </style>
 </head>
 <body>
-  <script>
-    function test () {
-      const wrap = document.querySelector('table').parentNode
-      console.log('test', wrap)
-      new Simplebar(wrap)
-    }
-  </script>
   <div id="editor"></div>
-  <div onclick="test()">button</div>
 </body>
 </html>
