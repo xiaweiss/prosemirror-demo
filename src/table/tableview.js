@@ -9,9 +9,9 @@ export class TableView {
     this.dom = document.createElement("div")
     this.dom.className = "ProseMirror-table-wrapper"
 
-    this.before = this.dom.appendChild(document.createElement("div"))
-    this.before.className = "ProseMirror-table-before"
-    this.before.innerHTML = "header<br>header2"
+    // this.before = this.dom.appendChild(document.createElement("div"))
+    // this.before.className = "ProseMirror-table-before"
+    // this.before.innerHTML = "header<br>header2"
 
     this.simplebar = this.dom.appendChild(document.createElement('div'))
     this.simplebar.setAttribute('data-simplebar', '')

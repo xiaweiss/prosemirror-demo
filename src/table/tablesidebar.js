@@ -1,7 +1,7 @@
 import {Decoration, DecorationSet} from "prosemirror-view"
 import {Plugin, PluginKey} from "prosemirror-state"
 import {CellSelection, TableMap, selectedRect} from "../prosemirror-tables/src"
-import {isInTable} from './commands'
+import {isInTable, findTableDepth, selectTable} from './commands'
 import './tablesidebar.css'
 
 export const tablesidebarKey = new PluginKey("tablesidebar")
@@ -18,8 +18,6 @@ export function tablesidebar() {
     props: {
       decorations: (state) => {
         if (!isInTable(state)) return null
-
-        // if (!(state.selection instanceof CellSelection)) return null
 
         const cells = []
         const sel = state.selection
@@ -39,17 +37,17 @@ export function tablesidebar() {
           widget.className = 'ProseMirror-tablesidbar'
           const child = widget.appendChild(document.createElement('div'))
           child.className = 'ProseMirror-tablesidbar-select-all'
+          child.addEventListener('click', () => {
+            selectTable(state, view.dispatch)
+          })
           return widget
+        }, {
+          // stopEvent: () => true,
+          ignoreSelection: true
         }))
 
         return DecorationSet.create(state.doc, cells)
       },
     },
   })
-}
-
-function findTableDepth (state) {
-  let $head = state.selection.$head
-  for (let d = $head.depth; d > 0; d--) if ($head.node(d).type.spec.tableRole == "table") return d
-  return false
 }

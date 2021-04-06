@@ -15,7 +15,7 @@ import {
   toggleHeaderRow,
 } from '../prosemirror-tables/src/commands'
 
-import { isInTable } from '../prosemirror-tables/src/util'
+import { isInTable, selectionCell } from '../prosemirror-tables/src/util'
 import { TableMap } from '../prosemirror-tables/src/tablemap'
 
 export function removeRow(tr, {map, table, tableStart}, row) {
@@ -128,6 +128,24 @@ function addTableToEnd (state, dispatch, { rowsCount = 3, colsCount = 3, withHea
   dispatch(tr)
 }
 
+function findTableDepth (state) {
+  let $head = state.selection.$head
+  for (let d = $head.depth; d > 0; d--) if ($head.node(d).type.spec.tableRole == "table") return d
+  return false
+}
+
+function selectTable (state, dispatch) {
+  if (!isInTable(state)) return false
+
+  const { tr, doc } = state
+  const tableDepth = findTableDepth(state)
+  const tableStart = state.selection.$anchor.start(tableDepth)
+
+  const selection = NodeSelection.create(doc, tableStart - 1)
+  tr.setSelection(selection)
+  dispatch(tr)
+}
+
 function selectRow (state, dispatch, anchorRow, headRow = anchorRow) {
   if (!isInTable(state)) return false
 
@@ -208,6 +226,8 @@ export {
   addTable,
   addTableToEnd,
   deleteTable,
+  selectTable,
+  findTableDepth,
 
   addColumnBefore,
   addColumnAfter,
