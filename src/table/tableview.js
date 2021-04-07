@@ -21,6 +21,11 @@ export class TableView {
     this.colgroup = this.table.appendChild(document.createElement("colgroup"))
     updateColumns(node, this.colgroup, this.table, cellMinWidth)
     this.contentDOM = this.table.appendChild(document.createElement("tbody"))
+
+    // 鼠标右键点击时，阻止 selection，可以保持 CellSelection 不被取消
+    this.table.addEventListener('mousedown', event => {
+      if (event.button === 2) event.preventDefault()
+    })
   }
 
   update(node) {
