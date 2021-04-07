@@ -193,7 +193,12 @@ class tableMenuView {
   showContextmenu (event) {
     const path = event.path || (event.composedPath && event.composedPath())
     for (let i = path.length - 1; i > 0; i--) {
-      if (path[i].classList && path[i].classList.contains('ProseMirror-table-wrapper')) {
+      if (path[i].classList &&
+        (
+          path[i].classList.contains('ProseMirror-table-wrapper') ||
+          path[i].classList.contains('ProseMirror-tablesidbar')
+        )
+      ) {
         event.preventDefault()
         this.render()
 
