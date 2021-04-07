@@ -10,6 +10,7 @@ import {
   addColumnAfter,
   mergeCells,
   splitCell,
+  deleteTable,
   deleteRow,
   deleteColumn
 } from './commands'
@@ -112,7 +113,12 @@ class tableMenuView {
       {
         text: '删除选中列',
         command: () => deleteColumn(state, dispatch)
-      }
+      },
+      { hr: true },
+      {
+        text: '删除表格',
+        command: () => deleteTable(state, dispatch)
+      },
     ]
   }
 
@@ -121,8 +127,10 @@ class tableMenuView {
     this.tablemenu.className = "Prosemirror-tablemenu"
     this.view.dom.parentNode.appendChild(this.tablemenu)
 
-    // 阻止 mousedown 用于判断是否菜单栏外部点击
     this.tablemenu.addEventListener('mousedown', event => {
+      // 阻止 mousedown 默认行为，避免点击菜单时编辑器 blur
+      event.preventDefault()
+      // 阻止 mousedown 冒泡，用于判断是否菜单栏外部点击
       event.stopPropagation()
     })
     // 菜单栏外部点击时，隐藏菜单
@@ -131,7 +139,7 @@ class tableMenuView {
     document.addEventListener('contextmenu', this.showContextmenu)
   }
 
-  update(view, lastState) {
+  update(view, prevState) {
     this.view = view
   }
 
@@ -155,7 +163,7 @@ class tableMenuView {
       if (item.disabled) {
         div.setAttribute('disabled', '')
       } else {
-        div.addEventListener('click', () => {
+        div.addEventListener('click', (event) => {
           item.command()
           this.hideContextmenu()
         })

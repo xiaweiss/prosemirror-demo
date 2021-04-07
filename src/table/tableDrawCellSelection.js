@@ -41,7 +41,9 @@ export function tableDrawCellSelection() {
             // calculate from row of rect left
             const pos = tableMap.map[row * tableWidth + left]
             const cell = table.nodeAt(pos)
-            const {height} = view.nodeDOM(tableStart + pos).getBoundingClientRect()
+            const dom = view.nodeDOM(tableStart + pos)
+            // check dom when redo delete table
+            const height = dom && dom.getBoundingClientRect ? dom.getBoundingClientRect().height : 0
 
             if (row < top) topPx += height
 
@@ -56,7 +58,9 @@ export function tableDrawCellSelection() {
             // calculate from row of rect top
             const pos = tableMap.map[col + tableWidth * top]
             const cell = table.nodeAt(pos)
-            const {width} = view.nodeDOM(tableStart + pos).getBoundingClientRect()
+            const dom = view.nodeDOM(tableStart + pos)
+            // check dom when redo delete table
+            const width = dom && dom.getBoundingClientRect ? dom.getBoundingClientRect().width : 0
 
             if (col < left) leftPx += width
 

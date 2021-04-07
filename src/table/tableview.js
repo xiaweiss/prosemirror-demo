@@ -24,7 +24,16 @@ export class TableView {
 
     // 鼠标右键点击时，阻止 selection，可以保持 CellSelection 不被取消
     this.table.addEventListener('mousedown', event => {
-      if (event.button === 2) event.preventDefault()
+      if (event.button === 2) {
+        const path = event.path || (event.composedPath && event.composedPath())
+
+        for (let i = path.length - 1; i > 0; i--) {
+          if (path[i].classList && path[i].classList.contains('selectedCell')) {
+            event.preventDefault()
+            return
+          }
+        }
+      }
     })
   }
 
