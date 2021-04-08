@@ -46,6 +46,11 @@
 .ProseMirror-tablesidbar-row:last-child {
   border-bottom: 1px solid #fff;
 }
+
+.ProseMirror-tablesidbar-row[selected] {
+  background: #E8E8EA;
+}
+
 /* col */
 .ProseMirror-tablesidbar-col-container {
   position: absolute;
@@ -70,6 +75,10 @@
 
 .ProseMirror-tablesidbar-col:last-child {
   border-right: 1px solid #fff;
+}
+
+.ProseMirror-tablesidbar-col[selected] {
+  background: #E8E8EA;
 }
 
 

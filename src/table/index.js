@@ -1,7 +1,4 @@
 import 'prosemirror-view/style/prosemirror.css'
-// import 'prosemirror-menu/style/menu.css'
-// import 'prosemirror-example-setup/style/style.css'
-import 'prosemirror-tables/style/tables.css'
 import 'prosemirror-gapcursor/style/gapcursor.css'
 
 import './style.css'

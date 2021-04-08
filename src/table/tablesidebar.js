@@ -1,6 +1,6 @@
 import {Decoration, DecorationSet} from "prosemirror-view"
 import {Plugin, PluginKey} from "prosemirror-state"
-import {CellSelection, TableMap, selectedRect} from "../prosemirror-tables/src"
+import {CellSelection, TableMap} from "../prosemirror-tables/src"
 import {isInTable, findTableDepth, selectTable, selectRow, selectCol} from './commands'
 import './tablesidebar.css'
 
@@ -51,6 +51,7 @@ class sidebarDecoration {
     this.tableStart = sel.$anchor.start(tableDepth)
     this.tableEnd = this.tableStart - 1 + this.table.nodeSize - 1
     this.tableMap = TableMap.get(this.table)
+    this.rect = sel instanceof CellSelection ? this.tableMap.rectBetween(sel.$anchorCell.pos - this.tableStart, sel.$headCell.pos - this.tableStart) : {}
     this.renderWidget()
     this.renderCol()
 
@@ -88,7 +89,8 @@ class sidebarDecoration {
   }
 
   renderRow () {
-    const {view, state, widget, table, tableMap} = this
+    const {view, state, widget, table, tableMap, rect} = this
+    const {top, bottom} = rect
 
     // select row
     const sidebarRowContainer = widget.appendChild(document.createElement('div'))
@@ -104,6 +106,13 @@ class sidebarDecoration {
 
       const sidebarRow = sidebarRowContainer.appendChild(document.createElement('div'))
       sidebarRow.className = 'ProseMirror-tablesidbar-row'
+
+      // when selected Cell (cellSelection), sidebar highlight
+      if (row >= top && row < bottom) {
+        sidebarRow.setAttribute('selected', '')
+      } else {
+        sidebarRow.removeAttribute('selected')
+      }
 
       this.updateRowHeight(sidebarRow, pos)
 
@@ -138,7 +147,8 @@ class sidebarDecoration {
   }
 
   renderCol () {
-    const {state, table, tableEnd, tableMap} = this
+    const {state, table, tableEnd, tableMap, rect} = this
+    const {left, right} = rect
 
     this.cells.push(Decoration.widget(tableEnd, view => {
       const sidebarColContainer = document.createElement('div')
@@ -154,6 +164,13 @@ class sidebarDecoration {
 
         const sidebarCol = sidebarColContainer.appendChild(document.createElement('div'))
         sidebarCol.className = 'ProseMirror-tablesidbar-col'
+
+        // when selected Cell (cellSelection), sidebar highlight
+        if (col >= left && col < right) {
+          sidebarCol.setAttribute('selected', '')
+        } else {
+          sidebarCol.removeAttribute('selected')
+        }
 
         this.updateColWidth(sidebarCol, pos)
 

@@ -17,6 +17,8 @@ import {
 
 import { isInTable, selectionCell } from '../prosemirror-tables/src/util'
 import { TableMap } from '../prosemirror-tables/src/tablemap'
+import { CellSelection } from '../prosemirror-tables/src/cellselection'
+import { NodeSelection } from 'prosemirror-state'
 
 export function removeRow(tr, {map, table, tableStart}, row) {
   let rowPos = 0
