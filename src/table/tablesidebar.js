@@ -46,8 +46,6 @@ class sidebarDecoration {
     this.table = sel.$anchor.node(tableDepth)
     this.tableStart = sel.$anchor.start(tableDepth)
     this.tableEnd = this.tableStart - 1 + this.table.nodeSize - 1
-    console.log('render tablesidebar')
-    debugger
     this.renderWidget()
 
     return DecorationSet.create(state.doc, this.cells)
@@ -84,19 +82,15 @@ class sidebarDecoration {
   }
 
   renderRow () {
-    debugger
-    const {view, widget, table, tableStart} = this
-    const state = this.view.state
+    const {view, state, widget, table, tableStart} = this
+    // const state = this.view.state
     const rect = selectedRect(state)
     const tableMap = rect.map
     const tableWidth = tableMap.width
-    const tableDom = view.nodeDOM(tableStart).parentNode.parentNode
-    console.log('tableDom', tableDom.getBoundingClientRect().height)
 
     // select row
     const sidebarRowContainer = this.sidebarRowContainer = widget.appendChild(document.createElement('div'))
     sidebarRowContainer.className = 'ProseMirror-tablesidbar-row-container'
-    table
 
     for (let row = 0; row < tableMap.height; row++) {
       // calculate row height from cell left

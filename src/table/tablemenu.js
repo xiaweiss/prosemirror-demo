@@ -151,7 +151,6 @@ class tableMenuView {
   }
 
   render () {
-    console.log('render')
     const fragment = document.createDocumentFragment()
     const data = this.data()
 
@@ -182,7 +181,6 @@ class tableMenuView {
   }
 
   updatePosition (event) {
-    console.log('getPosition', this.tablemenu.getBoundingClientRect())
     const tablemenuHeight = this.tablemenu.getBoundingClientRect().height
     const windowHeight = window.innerHeight
 

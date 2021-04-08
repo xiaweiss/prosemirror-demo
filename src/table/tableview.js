@@ -27,7 +27,7 @@ export class TableView {
       if (event.button === 2) {
         const path = event.path || (event.composedPath && event.composedPath())
 
-        for (let i = path.length - 1; i > 0; i--) {
+        for (let i = 0 ; i < path.length; i++) {
           if (path[i].classList && path[i].classList.contains('selectedCell')) {
             event.preventDefault()
             return
