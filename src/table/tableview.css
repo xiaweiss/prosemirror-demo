@@ -5,7 +5,8 @@
 }
 
 .ProseMirror table {
-  margin: 0;
+  overflow: visible;
+  margin: 10px 0 0;
   white-space: pre-wrap;
   white-space: break-spaces;
 }

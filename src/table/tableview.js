@@ -45,19 +45,23 @@ export class TableView {
   }
 
   ignoreMutation(record) {
-    console.log('ignoreMutation', record, record.type == "attributes" && record.target.classList.value.indexOf('simplebar') > -1)
+    // console.log('ignoreMutation', record, record.type == "attributes" && record.target.classList.value.indexOf('simplebar') > -1)
 
     // ignore wrapper
     if (record.target == this.simplebar && (record.type == "attributes" || record.type == "childList")) {
+      console.log('ignoreMutation', true)
       return true
     }
 
     // ignore simplebar
     if (record.type == "attributes" && record.target.classList.value.indexOf('simplebar') > -1) {
+      console.log('ignoreMutation', true)
       return true
     }
 
     const result = record.type == "attributes" && (record.target == this.table || this.colgroup.contains(record.target))
+
+    console.log('ignoreMutation', result)
 
     return result
   }
