@@ -30,6 +30,7 @@ export function tablesidebar() {
           isMouseDown = false
           return null
         }
+        console.log('tablesidebar render')
 
         return new sidebarDecoration(state)
       },
@@ -79,18 +80,21 @@ class sidebarDecoration {
   }
 
   renderSelectTable () {
-    const {state, view, widget} = this
+    const {state, view, widget, tableMap} = this
+
     // select table
     const sidebarSelectTable = widget.appendChild(document.createElement('div'))
     sidebarSelectTable.className = 'ProseMirror-tablesidbar-select-table'
+
+    this.updateSelectTableStatus(sidebarSelectTable)
+
     sidebarSelectTable.addEventListener('click', () => {
       selectTable(state, view.dispatch)
     })
   }
 
   renderRow () {
-    const {view, state, widget, table, tableMap, rect} = this
-    const {top, bottom} = rect
+    const {view, state, widget, table, tableMap} = this
 
     // select row
     const sidebarRowContainer = widget.appendChild(document.createElement('div'))
@@ -107,18 +111,14 @@ class sidebarDecoration {
       const sidebarRow = sidebarRowContainer.appendChild(document.createElement('div'))
       sidebarRow.className = 'ProseMirror-tablesidbar-row'
 
-      // when selected Cell (cellSelection), sidebar highlight
-      if (row >= top && row < bottom) {
-        sidebarRow.setAttribute('selected', '')
-      } else {
-        sidebarRow.removeAttribute('selected')
-      }
+      this.updateSidebarRowStatus(sidebarRow, row)
 
-      this.updateRowHeight(sidebarRow, pos)
+      const isLast = row === tableMap.height - 1
+      this.updateRowHeight(sidebarRow, pos, isLast)
 
       // calc height after prosemirror doc update
       requestAnimationFrame(() => {
-        this.updateRowHeight(sidebarRow, pos)
+        this.updateRowHeight(sidebarRow, pos, isLast)
       })
 
       sidebarRow.addEventListener('mousedown', () => {
@@ -147,8 +147,7 @@ class sidebarDecoration {
   }
 
   renderCol () {
-    const {state, table, tableEnd, tableMap, rect} = this
-    const {left, right} = rect
+    const {state, table, tableEnd, tableMap} = this
 
     this.cells.push(Decoration.widget(tableEnd, view => {
       const sidebarColContainer = document.createElement('div')
@@ -165,17 +164,13 @@ class sidebarDecoration {
         const sidebarCol = sidebarColContainer.appendChild(document.createElement('div'))
         sidebarCol.className = 'ProseMirror-tablesidbar-col'
 
-        // when selected Cell (cellSelection), sidebar highlight
-        if (col >= left && col < right) {
-          sidebarCol.setAttribute('selected', '')
-        } else {
-          sidebarCol.removeAttribute('selected')
-        }
+        this.updateSidebarColStatus (sidebarCol, col)
 
-        this.updateColWidth(sidebarCol, pos)
+        const isLast = col === tableMap.width - 1
+        this.updateColWidth(sidebarCol, pos, isLast)
 
         requestAnimationFrame(() => {
-          this.updateColWidth(sidebarCol, pos)
+          this.updateColWidth(sidebarCol, pos, isLast)
         })
 
         sidebarCol.addEventListener('mousedown', () => {
@@ -209,19 +204,71 @@ class sidebarDecoration {
     }))
   }
 
-  updateRowHeight (sidebarRow, pos) {
+  updateRowHeight (sidebarRow, pos, isLast) {
     const {view, tableStart} = this
     const dom = view.nodeDOM(tableStart + pos)
     // check dom when redo delete table
     const height = dom && dom.getBoundingClientRect ? dom.getBoundingClientRect().height : 0
-    if (height > 0) { sidebarRow.style.height = `${height}px` }
+    // if last cell, add table border right 1px
+    if (height > 0) { sidebarRow.style.height = `${height + (isLast ? 1 : 0)}px` }
   }
 
-  updateColWidth (sidebarCol, pos) {
+  updateColWidth (sidebarCol, pos, isLast) {
     const {view, tableStart} = this
     const dom = view.nodeDOM(tableStart + pos)
     // check dom when redo delete table
     const width = dom && dom.getBoundingClientRect ? dom.getBoundingClientRect().width : 0
-    if (width > 0) { sidebarCol.style.width = `${width}px` }
+    // if last cell, add table border bottom 1px
+    if (width > 0) { sidebarCol.style.width = `${width + (isLast ? 1 : 0)}px` }
+  }
+
+  updateSelectTableStatus (sidebarSelectTable) {
+    const {tableMap, rect} = this
+    const {left, right, top, bottom} = rect
+
+    // when selected all cells
+    if (left === 0 && top === 0 && right === tableMap.width && bottom === tableMap.height) {
+      sidebarSelectTable.setAttribute('selected-table', '')
+    } else {
+      sidebarSelectTable.removeAttribute('selected-table')
+    }
+  }
+
+  updateSidebarRowStatus (sidebarRow, row) {
+    const {tableMap, rect} = this
+    const {left, right, top, bottom} = rect
+
+    // when selected Cell (cellSelection), sidebar highlight
+    if (row >= top && row < bottom) {
+      sidebarRow.setAttribute('selected', '')
+
+      // when selected row，sidebar color
+      if (left === 0 && right === tableMap.width) {
+        sidebarRow.setAttribute('selected-row', '')
+      } else {
+        sidebarRow.removeAttribute('selected')
+      }
+    } else {
+      sidebarRow.removeAttribute('selected')
+    }
+  }
+
+  updateSidebarColStatus (sidebarCol, col) {
+    const {tableMap, rect} = this
+    const {left, right, top, bottom} = rect
+
+    // when selected Cell (cellSelection), sidebar highlight
+    if (col >= left && col < right) {
+      sidebarCol.setAttribute('selected', '')
+
+      // when selected col，sidebar color
+      if (top === 0 && bottom === tableMap.height) {
+        sidebarCol.setAttribute('selected-col', '')
+      } else {
+        sidebarCol.removeAttribute('selected')
+      }
+    } else {
+      sidebarCol.removeAttribute('selected')
+    }
   }
 }

@@ -13,6 +13,11 @@
   height: 16px;
   background: #DDD;
   border-radius: 50%;
+  cursor: pointer;
+}
+
+.ProseMirror-tablesidbar-select-table[selected-table] {
+  background: rgba(61, 178, 75, 1);
 }
 
 .ProseMirror-tablesidbar-select-table::after {
@@ -47,10 +52,6 @@
   border-bottom: 1px solid #fff;
 }
 
-.ProseMirror-tablesidbar-row[selected] {
-  background: #E8E8EA;
-}
-
 /* col */
 .ProseMirror-tablesidbar-col-container {
   position: absolute;
@@ -77,8 +78,31 @@
   border-right: 1px solid #fff;
 }
 
+/* row & col */
+.ProseMirror-tablesidbar-row[selected],
 .ProseMirror-tablesidbar-col[selected] {
   background: #E8E8EA;
 }
 
+.ProseMirror-tablesidbar-row[selected-row],
+.ProseMirror-tablesidbar-col[selected-col] {
+  background: rgba(61, 178, 75, 0.4);
+}
+
+.ProseMirror-tablesidbar-row[selected-row],
+.ProseMirror-tablesidbar-col[selected-col],
+.ProseMirror-tablesidbar-row[selected-row]:last-child,
+.ProseMirror-tablesidbar-row[selected-col]:last-child,
+.ProseMirror-tablesidbar-row[selected-row] + .ProseMirror-tablesidbar-row,
+.ProseMirror-tablesidbar-col[selected-col] + .ProseMirror-tablesidbar-col,
+.ProseMirror-tablesidbar-row[selected-row] + .ProseMirror-tablesidbar-row[selected-row]:last-child,
+.ProseMirror-tablesidbar-col[selected-col] + .ProseMirror-tablesidbar-col[selected-col]:last-child {
+  border-color: rgba(61, 178, 75, 1)
+}
+
+.ProseMirror-tablesidbar-row[selected-row] + .ProseMirror-tablesidbar-row:last-child,
+.ProseMirror-tablesidbar-col[selected-col] + .ProseMirror-tablesidbar-col:last-child {
+  border-bottom-color:#fff;
+  border-right-color:#fff;
+}
 

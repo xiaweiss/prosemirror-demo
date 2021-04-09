@@ -61,8 +61,6 @@ export class TableView {
 
     const result = record.type == "attributes" && (record.target == this.table || this.colgroup.contains(record.target))
 
-    console.log('ignoreMutation', result)
-
     return result
   }
 }

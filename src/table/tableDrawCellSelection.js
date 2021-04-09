@@ -74,8 +74,8 @@ export function tableDrawCellSelection() {
           const widget = document.createElement("div")
 
           widget.className = 'ProseMirror-drawCellSelection'
-          widget.style.width = rightPx - leftPx + 'px'
-          widget.style.height = bottomPx - topPx + 'px'
+          widget.style.width = rightPx - leftPx + 1 + 'px' // add table border-right 1px
+          widget.style.height = bottomPx - topPx + 1 + 'px' // add table barder-bottom 1px
           widget.style.left = leftPx + 'px'
           widget.style.top = topPx + 'px'
 

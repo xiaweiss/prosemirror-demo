@@ -71,7 +71,12 @@ function handleMouseMove(view, event, handleWidth, cellMinWidth, lastColumnResiz
     let target = domCellAround(event.target), cell = -1
     if (target) {
       let {left, right} = target.getBoundingClientRect()
-      if (event.clientX - left <= handleWidth)
+
+      // some edge cases, the `clientX` is less than the bounding rect of the target element.
+      // For these cases, we should select the cell on the right
+      if (event.clientX < left)
+        cell = edgeCell(view, event, "right")
+      else if (event.clientX - left <= handleWidth)
         cell = edgeCell(view, event, "left")
       else if (right - event.clientX <= handleWidth)
         cell = edgeCell(view, event, "right")
@@ -149,7 +154,6 @@ function domCellAround(target) {
 
 function edgeCell(view, event, side) {
   let found = view.posAtCoords({left: event.clientX, top: event.clientY})
-  // console.log('found', found, event.clientX, event.clientY)
   if (!found) return -1
   let {pos} = found
   let $cell = cellAround(view.state.doc.resolve(pos))
@@ -214,7 +218,7 @@ function handleDecorations(state, cell) {
     // of the table to their right, and either the top of the table or
     // a different cell above them, add a decoration
     if ((col == map.width || map.map[index] != map.map[index + 1]) &&
-        (row == 0 || map.map[index - 1] != map.map[index - 1 - map.width])) {
+        (row == 0 || map.map[index] != map.map[index - map.width])) {
       let cellPos = map.map[index]
       let pos = start + cellPos + table.nodeAt(cellPos).nodeSize - 1
       let dom = document.createElement("div")

@@ -13,6 +13,6 @@
   top: 0;
   box-sizing: border-box;
   background: rgba(61, 178, 75, 0.04);
-  border: 2px solid #3DB24B;;
+  border: 1px solid rgba(61, 178, 75, 1);;
   pointer-events: none;
 }
