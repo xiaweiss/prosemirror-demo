@@ -1,9 +1,6 @@
 import 'prosemirror-view/style/prosemirror.css'
 import 'prosemirror-gapcursor/style/gapcursor.css'
 
-import './style.css'
-
-
 import {EditorView} from "prosemirror-view"
 import {EditorState, Selection, NodeSelection, TextSelection, Node} from "prosemirror-state"
 import {DOMParser, Schema}  from "prosemirror-model"

@@ -7,143 +7,129 @@ import {TableView, updateColumns} from "./tableview"
 
 export const key = new PluginKey("tableColumnResizing")
 
-export function columnResizing({ handleWidth = 5, cellMinWidth = 25, View = TableView, lastColumnResizable = true } = {}) {
-  let plugin = new Plugin({
+export function columnResizing({ handleWidth = 10, cellMinWidth = 25, View = TableView, lastColumnResizable = true } = {}) {
+  return new Plugin({
     key,
     state: {
       init(_, state) {
         this.spec.props.nodeViews[tableNodeTypes(state.schema).table.name] =
           (node, view) => new View(node, cellMinWidth, view)
-        return new ResizeState(-1, false)
+        return null
       },
       apply(tr, prev) {
-        return prev.apply(tr)
+        return null
       }
     },
     props: {
-      attributes(state) {
-        let pluginState = key.getState(state)
-        return pluginState.activeHandle > -1 ? {class: "resize-cursor"} : null
-      },
+      // attributes(state) {
+      //   let pluginState = key.getState(state)
+      //   return pluginState.activeHandle > -1 ? {class: "resize-cursor"} : null
+      // },
 
       handleDOMEvents: {
-        mousemove(view, event) { handleMouseMove(view, event, handleWidth, cellMinWidth, lastColumnResizable) },
-        mouseleave(view) { handleMouseLeave(view) },
-        mousedown(view, event) { handleMouseDown(view, event, cellMinWidth) }
+        mousemove(view, event) { handleMouseMove(view, event, handleWidth, cellMinWidth) },
+        mouseleave(view, event) { handleMouseLeave(view, event, handleWidth, cellMinWidth) },
+        mousedown(view, event) { handleMouseDown(view, event, handleWidth, cellMinWidth) },
+        mouseup(view, event) { handleMouseUp(view, event, handleWidth, cellMinWidth) }
       },
 
       decorations(state) {
-        let pluginState = key.getState(state)
-        if (pluginState.activeHandle > -1) return handleDecorations(state, pluginState.activeHandle)
+        return null
       },
 
       nodeViews: {}
     }
   })
-  return plugin
 }
 
-class ResizeState {
-  constructor(activeHandle, dragging) {
-    this.activeHandle = activeHandle
-    this.dragging = dragging
+let dragging = false
+let prevTime = 0
+let activeHandle = -1
+let startX = 0
+let startWidth = 0
+
+function handleMouseMove (view, event, handleWidth, cellMinWidth) {
+  if (Date.now() - prevTime < 50) return
+  prevTime = Date.now()
+
+  if (dragging) {
+    const offset = event.clientX - startX
+    const draggedWidth = Math.max(cellMinWidth, startWidth + offset)
+    updateColumnWidth(view, activeHandle, draggedWidth)
   }
 
-  apply(tr) {
-    let state = this, action = tr.getMeta(key)
-    if (action && action.setHandle != null)
-      return new ResizeState(action.setHandle, null)
-    if (action && action.setDragging !== undefined)
-      return new ResizeState(state.activeHandle, action.setDragging)
-    if (state.activeHandle > -1 && tr.docChanged) {
-      let handle = tr.mapping.map(state.activeHandle, -1)
-      if (!pointsAtCell(tr.doc.resolve(handle))) handle = null
-      state = new ResizeState(handle, state.dragging)
-    }
-    return state
-  }
-}
+  if (!dragging) {
+    const target = domCellAround(event.target)
+    let cell = -1
 
-function handleMouseMove(view, event, handleWidth, cellMinWidth, lastColumnResizable) {
-  let pluginState = key.getState(view.state)
+    console.log('====mousemove', 'target', target)
 
-  if (!pluginState.dragging) {
-    let target = domCellAround(event.target), cell = -1
+
     if (target) {
-      let {left, right} = target.getBoundingClientRect()
+      const {left, right} = target.getBoundingClientRect()
+
+      console.log('====mousemove', 'X', event.clientX)
+      console.log('====mousemove', 'left right', left, right)
 
       // some edge cases, the `clientX` is less than the bounding rect of the target element.
       // For these cases, we should select the cell on the right
-      if (event.clientX < left)
+      if (event.clientX < left) {
+        // console.log('right')
         cell = edgeCell(view, event, "right")
-      else if (event.clientX - left <= handleWidth)
+
+      } else if (event.clientX <= handleWidth + left) {
+        // console.log('left')
         cell = edgeCell(view, event, "left")
-      else if (right - event.clientX <= handleWidth)
+
+      } else if (event.clientX >= right - handleWidth) {
+        // console.log('right')
         cell = edgeCell(view, event, "right")
-    }
-
-    if (cell != pluginState.activeHandle) {
-      if (!lastColumnResizable && cell !== -1) {
-        let $cell = view.state.doc.resolve(cell)
-        let table = $cell.node(-1), map = TableMap.get(table), start = $cell.start(-1)
-        let col = map.colCount($cell.pos - start) + $cell.nodeAfter.attrs.colspan - 1
-
-        if (col == map.width - 1) {
-          return
-        }
       }
 
-      updateHandle(view, cell)
+      activeHandle = cell
+
+      console.log('cell', cell)
+
+      // if (cell !== -1) {
+      //   const $cell = view.state.doc.resolve(cell)
+      //   const table = $cell.node(-1), map = TableMap.get(table), start = $cell.start(-1)
+      //   const col = map.colCount($cell.pos - start) + $cell.nodeAfter.attrs.colspan - 1
+      //   console.log('====mousemove', 'col', col, map.width)
+      // }
     }
   }
 }
 
-function handleMouseLeave(view) {
-  let pluginState = key.getState(view.state)
-  if (pluginState.activeHandle > -1 && !pluginState.dragging) updateHandle(view, -1)
+function handleMouseLeave () {
+  console.log('====mouseleave')
+  dragging = false
 }
 
-function handleMouseDown(view, event, cellMinWidth) {
-  let pluginState = key.getState(view.state)
-  if (pluginState.activeHandle == -1 || pluginState.dragging) return false
+function handleMouseDown (view, event, handleWidth, cellMinWidth) {
+  console.log('====mousedown')
+  if (activeHandle == -1) return false
 
-  let cell = view.state.doc.nodeAt(pluginState.activeHandle)
-  let width = currentColWidth(view, pluginState.activeHandle, cell.attrs)
-  view.dispatch(view.state.tr.setMeta(key, {setDragging: {startX: event.clientX, startWidth: width}}))
+  dragging = true
+  startX = event.clientX
 
-  function finish(event) {
-    window.removeEventListener("mouseup", finish)
-    window.removeEventListener("mousemove", move)
-    let pluginState = key.getState(view.state)
-    if (pluginState.dragging) {
-      updateColumnWidth(view, pluginState.activeHandle, draggedWidth(pluginState.dragging, event, cellMinWidth))
-      view.dispatch(view.state.tr.setMeta(key, {setDragging: null}))
-    }
-  }
-  function move(event) {
-    if (!event.which) return finish(event)
-    let pluginState = key.getState(view.state)
-    let dragged = draggedWidth(pluginState.dragging, event, cellMinWidth)
-    displayColumnWidth(view, pluginState.activeHandle, dragged, cellMinWidth)
+  const cell = view.state.doc.nodeAt(activeHandle)
+  const width = currentColWidth(view, activeHandle, cell.attrs)
+  startWidth = width
+
+  function onMouseMove () {
+
   }
 
-  window.addEventListener("mouseup", finish)
-  window.addEventListener("mousemove", move)
-  event.preventDefault()
-  return true
+  function onMouseup () {
+
+  }
+
+  window.addEventListener('mousemove', onMouseMove)
+  window.addEventListener('mouseup', onMouseup)
 }
 
-function currentColWidth(view, cellPos, {colspan, colwidth}) {
-  let width = colwidth && colwidth[colwidth.length - 1]
-  if (width) return width
-  let dom = view.domAtPos(cellPos)
-  let node = dom.node.childNodes[dom.offset]
-  let domWidth = node.offsetWidth, parts = colspan
-  if (colwidth) for (let i = 0; i < colspan; i++) if (colwidth[i]) {
-    domWidth -= colwidth[i]
-    parts--
-  }
-  return domWidth / parts
+function handleMouseUp () {
+  dragging = false
 }
 
 function domCellAround(target) {
@@ -153,24 +139,33 @@ function domCellAround(target) {
 }
 
 function edgeCell(view, event, side) {
-  let found = view.posAtCoords({left: event.clientX, top: event.clientY})
+  const found = view.posAtCoords({left: event.clientX, top: event.clientY})
   if (!found) return -1
-  let {pos} = found
-  let $cell = cellAround(view.state.doc.resolve(pos))
+
+  const {pos} = found
+  const $cell = cellAround(view.state.doc.resolve(pos))
   if (!$cell) return -1
+
   if (side == "right") return $cell.pos
-  let map = TableMap.get($cell.node(-1)), start = $cell.start(-1)
-  let index = map.map.indexOf($cell.pos - start)
+
+  const map = TableMap.get($cell.node(-1))
+  const start = $cell.start(-1)
+  const index = map.map.indexOf($cell.pos - start)
   return index % map.width == 0 ? -1 : start + map.map[index - 1]
 }
 
-function draggedWidth(dragging, event, cellMinWidth) {
-  let offset = event.clientX - dragging.startX
-  return Math.max(cellMinWidth, dragging.startWidth + offset)
-}
+function currentColWidth(view, cellPos, {colspan, colwidth}) {
+  const width = colwidth && colwidth[colwidth.length - 1]
+  if (width) return width
 
-function updateHandle(view, value) {
-  view.dispatch(view.state.tr.setMeta(key, {setHandle: value}))
+  const dom = view.domAtPos(cellPos)
+  const node = dom.node.childNodes[dom.offset]
+  let domWidth = node.offsetWidth, parts = colspan
+  if (colwidth) for (let i = 0; i < colspan; i++) if (colwidth[i]) {
+    domWidth -= colwidth[i]
+    parts--
+  }
+  return domWidth / parts
 }
 
 function updateColumnWidth(view, cell, width) {
@@ -192,39 +187,8 @@ function updateColumnWidth(view, cell, width) {
   if (tr.docChanged) view.dispatch(tr)
 }
 
-function displayColumnWidth(view, cell, width, cellMinWidth) {
-  let $cell = view.state.doc.resolve(cell)
-  let table = $cell.node(-1), start = $cell.start(-1)
-  let col = TableMap.get(table).colCount($cell.pos - start) + $cell.nodeAfter.attrs.colspan - 1
-  let dom = view.domAtPos($cell.start(-1)).node
-  while (dom.nodeName != "TABLE") dom = dom.parentNode
-  updateColumns(table, dom.firstChild, dom, cellMinWidth, col, width)
-}
-
 function zeroes(n) {
   let result = []
   for (let i = 0; i < n; i++) result.push(0)
   return result
-}
-
-function handleDecorations(state, cell) {
-  let decorations = []
-  let $cell = state.doc.resolve(cell)
-  let table = $cell.node(-1), map = TableMap.get(table), start = $cell.start(-1)
-  let col = map.colCount($cell.pos - start) + $cell.nodeAfter.attrs.colspan
-  for (let row = 0; row < map.height; row++) {
-    let index = col + row * map.width - 1
-    // For positions that are have either a different cell or the end
-    // of the table to their right, and either the top of the table or
-    // a different cell above them, add a decoration
-    if ((col == map.width || map.map[index] != map.map[index + 1]) &&
-        (row == 0 || map.map[index] != map.map[index - map.width])) {
-      let cellPos = map.map[index]
-      let pos = start + cellPos + table.nodeAt(cellPos).nodeSize - 1
-      let dom = document.createElement("div")
-      dom.className = "column-resize-handle"
-      decorations.push(Decoration.widget(pos, dom))
-    }
-  }
-  return DecorationSet.create(state.doc, decorations)
 }
