@@ -52,12 +52,6 @@ function handleMouseMove (view, event, handleWidth, cellMinWidth) {
   if (Date.now() - prevTime < 50) return
   prevTime = Date.now()
 
-  if (dragging) {
-    const offset = event.clientX - startX
-    const draggedWidth = Math.max(cellMinWidth, startWidth + offset)
-    updateColumnWidth(view, activeHandle, draggedWidth)
-  }
-
   if (!dragging) {
     const target = domCellAround(event.target)
     let cell = -1
@@ -116,12 +110,18 @@ function handleMouseDown (view, event, handleWidth, cellMinWidth) {
   const width = currentColWidth(view, activeHandle, cell.attrs)
   startWidth = width
 
-  function onMouseMove () {
-
+  function onMouseMove (event) {
+    if (dragging) {
+      const offset = event.clientX - startX
+      const draggedWidth = Math.max(cellMinWidth, startWidth + offset)
+      updateColumnWidth(view, activeHandle, draggedWidth)
+    }
   }
 
   function onMouseup () {
-
+    dragging = false
+    window.removeEventListener('mousemove', onMouseMove)
+    window.removeEventListener('mouseup', onMouseup)
   }
 
   window.addEventListener('mousemove', onMouseMove)
