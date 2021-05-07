@@ -116,7 +116,7 @@ import {dropCursor} from 'prosemirror-dropcursor'
 import {gapCursor} from 'prosemirror-gapcursor'
 import {keymap}  from "prosemirror-keymap"
 import {baseKeymap} from "prosemirror-commands"
-import {undo, redo, history} from "prosemirror-history"
+import {undo, redo, history} from "./history"
 import {tableDrawCellSelection} from './tableDrawCellSelection'
 import {tablemenu} from './tablemenu'
 import {tablesidebar} from './tablesidebar'

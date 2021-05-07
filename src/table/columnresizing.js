@@ -30,7 +30,6 @@ export function columnResizing({ handleWidth = 10, cellMinWidth = 25, View = Tab
         mousemove(view, event) { handleMouseMove(view, event, handleWidth, cellMinWidth) },
         mouseleave(view, event) { handleMouseLeave(view, event, handleWidth, cellMinWidth) },
         mousedown(view, event) { handleMouseDown(view, event, handleWidth, cellMinWidth) },
-        mouseup(view, event) { handleMouseUp(view, event, handleWidth, cellMinWidth) }
       },
 
       decorations(state) {
@@ -109,12 +108,13 @@ function handleMouseDown (view, event, handleWidth, cellMinWidth) {
   const cell = view.state.doc.nodeAt(activeHandle)
   const width = currentColWidth(view, activeHandle, cell.attrs)
   startWidth = width
+  updateColumnWidth(view, activeHandle, width, false)
 
   function onMouseMove (event) {
     if (dragging) {
       const offset = event.clientX - startX
       const draggedWidth = Math.max(cellMinWidth, startWidth + offset)
-      updateColumnWidth(view, activeHandle, draggedWidth)
+      updateColumnWidth(view, activeHandle, draggedWidth, dragging)
     }
   }
 
@@ -168,7 +168,7 @@ function currentColWidth(view, cellPos, {colspan, colwidth}) {
   return domWidth / parts
 }
 
-function updateColumnWidth(view, cell, width) {
+function updateColumnWidth(view, cell, width, dragging) {
   let $cell = view.state.doc.resolve(cell)
   let table = $cell.node(-1), map = TableMap.get(table), start = $cell.start(-1)
   let col = map.colCount($cell.pos - start) + $cell.nodeAfter.attrs.colspan - 1
@@ -183,6 +183,7 @@ function updateColumnWidth(view, cell, width) {
     let colwidth = attrs.colwidth ? attrs.colwidth.slice() : zeroes(attrs.colspan)
     colwidth[index] = width
     tr.setNodeMarkup(start + pos, null, setAttr(attrs, "colwidth", colwidth))
+    tr.setMeta('replaceHistory', dragging)
   }
   if (tr.docChanged) view.dispatch(tr)
 }
