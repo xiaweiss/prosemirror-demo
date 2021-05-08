@@ -1,0 +1,78 @@
+.Prosemirror-tableMenu {
+  position: fixed;
+  z-index: 10;
+  left: 10000px;
+  top: 0;
+  width: 200px;
+  padding: 4px 0;
+  background: #FFFFFF;
+  border: 1px solid #EAEEEF;
+  border-radius: 4px;
+  box-shadow: 0px 3px 14px 0px rgba(214, 216, 218, 0.3);
+  user-select: none;
+  cursor: pointer;
+}
+
+.Prosemirror-tableMenu-hr {
+  height: 1px;
+  background:#EAEEEF;
+  margin: 4px 14px;
+}
+
+.Prosemirror-tableMenu-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding-left: 23px;
+  font-size: 14px;
+  line-height: 30px;
+  color: #303030;
+  cursor: pointer;
+}
+
+.Prosemirror-tableMenu-item:hover {
+  background: #F3F4F5;
+}
+
+.Prosemirror-tableMenu-item[disabled] {
+  color: rgba(48,48,48, 0.4);
+}
+.Prosemirror-tableMenu-item[disabled]:hover {
+  background: #fff;
+}
+
+.Prosemirror-tableMenu-item[disabled]:hover .Prosemirror-tableMenu-item-hovertip {
+  display: block;
+}
+
+.Prosemirror-tableMenu-item-hovertip {
+  position: absolute;
+  right: 100%;
+  top: 0;
+  bottom: 0;
+  display: none;
+  padding: 0 5px;
+  margin: 4px;
+  background: #fff;
+  box-shadow: 0 0 14px 0 rgba(214,216,218, 0.4);
+  border-radius: 5px;
+  font-size: 13px;
+  color: #303030;
+  white-space: nowrap;
+}
+
+.Prosemirror-tableMenu-item-hovertip::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: 0;
+  bottom: 0;
+  display: block;
+  width: 0;
+  height: 0;
+  margin: auto 0;
+  border-left: 4px solid #fff;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
