@@ -105,11 +105,11 @@ let schema = new Schema({
 
 import {
   tableEditing,
-  // columnResizing,
   fixTables,
   tableNodeTypes
 } from '../prosemirror-tables/src'
 import {columnResizing} from './columnresizing'
+// import {columnResizing} from './columnresizingCopy'
 // import {schema} from './schema'
 
 import {dropCursor} from 'prosemirror-dropcursor'

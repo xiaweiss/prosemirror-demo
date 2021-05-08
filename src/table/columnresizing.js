@@ -5,9 +5,15 @@ import {TableMap} from "../prosemirror-tables/src/tablemap"
 import {tableNodeTypes} from "../prosemirror-tables/src/schema"
 import {TableView, updateColumns} from "./tableview"
 
+let dragging = false
+let prevTime = 0
+let activeHandle = -1
+let startX = 0
+let startWidth = 0
+
 export const key = new PluginKey("tableColumnResizing")
 
-export function columnResizing({ handleWidth = 10, cellMinWidth = 25, View = TableView, lastColumnResizable = true } = {}) {
+export function columnResizing({ handleWidth = 5, cellMinWidth = 25, View = TableView, lastColumnResizable = true } = {}) {
   return new Plugin({
     key,
     state: {
@@ -16,15 +22,14 @@ export function columnResizing({ handleWidth = 10, cellMinWidth = 25, View = Tab
           (node, view) => new View(node, cellMinWidth, view)
         return null
       },
-      apply(tr, prev) {
+      apply(tr, value) {
         return null
       }
     },
     props: {
-      // attributes(state) {
-      //   let pluginState = key.getState(state)
-      //   return pluginState.activeHandle > -1 ? {class: "resize-cursor"} : null
-      // },
+      attributes(state) {
+        return activeHandle > -1 ? {class: "resize-cursor"} : null
+      },
 
       handleDOMEvents: {
         mousemove(view, event) { handleMouseMove(view, event, handleWidth, cellMinWidth) },
@@ -33,6 +38,8 @@ export function columnResizing({ handleWidth = 10, cellMinWidth = 25, View = Tab
       },
 
       decorations(state) {
+        console.log('decorations', activeHandle > -1, activeHandle)
+        if (activeHandle > -1) return handleDecorations(state, activeHandle)
         return null
       },
 
@@ -40,12 +47,6 @@ export function columnResizing({ handleWidth = 10, cellMinWidth = 25, View = Tab
     }
   })
 }
-
-let dragging = false
-let prevTime = 0
-let activeHandle = -1
-let startX = 0
-let startWidth = 0
 
 function handleMouseMove (view, event, handleWidth, cellMinWidth) {
   if (Date.now() - prevTime < 50) return
@@ -55,40 +56,32 @@ function handleMouseMove (view, event, handleWidth, cellMinWidth) {
     const target = domCellAround(event.target)
     let cell = -1
 
-    console.log('====mousemove', 'target', target)
-
-
     if (target) {
       const {left, right} = target.getBoundingClientRect()
 
-      console.log('====mousemove', 'X', event.clientX)
-      console.log('====mousemove', 'left right', left, right)
+      console.log(event.clientX, event.clientY, left, right)
 
       // some edge cases, the `clientX` is less than the bounding rect of the target element.
       // For these cases, we should select the cell on the right
       if (event.clientX < left) {
-        // console.log('right')
         cell = edgeCell(view, event, "right")
 
+      // some edge cases, the `clientX` is more than the bounding rect of the target element.
+      // For these cases, we should select the cell on the left
+      } else if (event.clientX > right) {
+        cell = edgeCell(view, event, "left")
+
       } else if (event.clientX <= handleWidth + left) {
-        // console.log('left')
         cell = edgeCell(view, event, "left")
 
       } else if (event.clientX >= right - handleWidth) {
-        // console.log('right')
         cell = edgeCell(view, event, "right")
       }
 
-      activeHandle = cell
-
-      console.log('cell', cell)
-
-      // if (cell !== -1) {
-      //   const $cell = view.state.doc.resolve(cell)
-      //   const table = $cell.node(-1), map = TableMap.get(table), start = $cell.start(-1)
-      //   const col = map.colCount($cell.pos - start) + $cell.nodeAfter.attrs.colspan - 1
-      //   console.log('====mousemove', 'col', col, map.width)
-      // }
+      if (cell !== activeHandle) {
+        activeHandle = cell
+        view.dispatch(view.state.tr)
+      }
     }
   }
 }
@@ -100,9 +93,11 @@ function handleMouseLeave () {
 
 function handleMouseDown (view, event, handleWidth, cellMinWidth) {
   console.log('====mousedown')
-  if (activeHandle == -1) return false
+  if (activeHandle === -1) return false
 
   dragging = true
+  // when change column width, stop selection
+  event.preventDefault()
   startX = event.clientX
 
   const cell = view.state.doc.nodeAt(activeHandle)
@@ -111,6 +106,8 @@ function handleMouseDown (view, event, handleWidth, cellMinWidth) {
   updateColumnWidth(view, activeHandle, width, false)
 
   function onMouseMove (event) {
+    // when change column width, stop selection
+    event.preventDefault()
     if (dragging) {
       const offset = event.clientX - startX
       const draggedWidth = Math.max(cellMinWidth, startWidth + offset)
@@ -118,7 +115,9 @@ function handleMouseDown (view, event, handleWidth, cellMinWidth) {
     }
   }
 
-  function onMouseup () {
+  function onMouseup (event) {
+    // when change column width, stop selection
+    event.preventDefault()
     dragging = false
     window.removeEventListener('mousemove', onMouseMove)
     window.removeEventListener('mouseup', onMouseup)
@@ -128,17 +127,16 @@ function handleMouseDown (view, event, handleWidth, cellMinWidth) {
   window.addEventListener('mouseup', onMouseup)
 }
 
-function handleMouseUp () {
-  dragging = false
-}
-
 function domCellAround(target) {
   while (target && target.nodeName != "TD" && target.nodeName != "TH")
     target = target.classList.contains("ProseMirror") ? null : target.parentNode
   return target
 }
 
-function edgeCell(view, event, side) {
+function edgeCell(view, event, side, debug) {
+  if (debug) {
+    debugger
+  }
   const found = view.posAtCoords({left: event.clientX, top: event.clientY})
   if (!found) return -1
 
@@ -192,4 +190,26 @@ function zeroes(n) {
   let result = []
   for (let i = 0; i < n; i++) result.push(0)
   return result
+}
+
+function handleDecorations(state, cell) {
+  let decorations = []
+  let $cell = state.doc.resolve(cell)
+  let table = $cell.node(-1), map = TableMap.get(table), start = $cell.start(-1)
+  let col = map.colCount($cell.pos - start) + $cell.nodeAfter.attrs.colspan
+  for (let row = 0; row < map.height; row++) {
+    let index = col + row * map.width - 1
+    // For positions that are have either a different cell or the end
+    // of the table to their right, and either the top of the table or
+    // a different cell above them, add a decoration
+    if ((col == map.width || map.map[index] != map.map[index + 1]) &&
+        (row == 0 || map.map[index] != map.map[index - map.width])) {
+      let cellPos = map.map[index]
+      let pos = start + cellPos + table.nodeAt(cellPos).nodeSize - 1
+      let dom = document.createElement("div")
+      dom.className = "column-resize-handle"
+      decorations.push(Decoration.widget(pos, dom))
+    }
+  }
+  return DecorationSet.create(state.doc, decorations)
 }

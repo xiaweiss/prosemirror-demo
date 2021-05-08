@@ -8,7 +8,7 @@ import {tableNodeTypes} from "./schema";
 export const key = new PluginKey("selectingCells")
 
 export function cellAround($pos) {
-  for (let d = $pos.depth - 1; d > 0; d--)
+  for (let d = $pos.depth; d > 0; d--)  // ! Sometimes the cell can be in the same depth.
     if ($pos.node(d).type.spec.tableRole == "row") return $pos.node(0).resolve($pos.before(d + 1))
   return null
 }
