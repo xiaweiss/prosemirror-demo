@@ -1,0 +1,19 @@
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: -1px;
+  bottom: 0;
+  z-index: 20;
+  width: 3px;
+  background: #3DB24B;
+  user-select: none;
+}
+
+.ProseMirror td:last-child .column-resize-handle {
+  right: 0;
+}
+
+.ProseMirror.resize-col-cursor {
+  cursor: ew-resize;
+  cursor: col-resize;
+}

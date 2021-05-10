@@ -1,9 +1,10 @@
 import {Plugin, PluginKey} from "prosemirror-state"
 import {Decoration, DecorationSet} from "prosemirror-view"
-import {cellAround, pointsAtCell, setAttr} from "./util"
+import {cellAround, pointsAtCell, setAttr, isInTable} from "./util"
 import {TableMap} from './tablemap'
 import {tableNodeTypes} from './schema'
 import {TableView, updateColumns} from "./tableview"
+import './columnResizing.css'
 
 let dragging = false
 let prevTime = 0
@@ -28,12 +29,11 @@ export function columnResizing({ handleWidth = 5, cellMinWidth = 25, View = Tabl
     },
     props: {
       attributes(state) {
-        return activeHandle > -1 ? {class: "resize-cursor"} : null
+        return activeHandle > -1 ? {class: "resize-col-cursor"} : null
       },
 
       handleDOMEvents: {
         mousemove(view, event) { handleMouseMove(view, event, handleWidth, cellMinWidth) },
-        mouseleave(view, event) { handleMouseLeave(view, event, handleWidth, cellMinWidth) },
         mousedown(view, event) { handleMouseDown(view, event, handleWidth, cellMinWidth) },
       },
 
@@ -52,39 +52,57 @@ function handleMouseMove (view, event, handleWidth, cellMinWidth) {
   prevTime = Date.now()
 
   if (!dragging) {
-    const target = domCellAround(event.target)
+    let target = domCellAround(event.target)
+    let table = domTableAround(target)
+    let {clientX, clientY} = event
     let cell = -1
+
+    // sidebar
+    if (!target && isInTable(view.state)) {
+      console.log('sidebar')
+      clientY += 10 // sidebar height
+      target = domCellAround(document.elementFromPoint(clientX, clientY))
+      table = domTableAround(target)
+
+      if (target) {
+        function sidebarMousedown (event) {
+          handleMouseDown(view, event, handleWidth, cellMinWidth)
+        }
+
+        event.target.removeEventListener('mousedown', sidebarMousedown)
+        event.target.addEventListener('mousedown', sidebarMousedown)
+      }
+    }
 
     if (target) {
       const {left, right} = target.getBoundingClientRect()
+      const tableLeft  = table.getBoundingClientRect().left
+
+      // console.log('X', event.clientX, left, right)
 
       // some edge cases, the `clientX` is less than the bounding rect of the target element.
       // For these cases, we should select the cell on the right
-      if (event.clientX < left) {
-        cell = edgeCell(view, event, "right")
+      if (clientX < left && clientX > tableLeft) {
+        cell = edgeCell(view, clientX, clientY, "right")
 
       // some edge cases, the `clientX` is more than the bounding rect of the target element.
       // For these cases, we should select the cell on the left
-      } else if (event.clientX > right) {
-        cell = edgeCell(view, event, "left")
+      } else if (clientX > right) {
+        cell = edgeCell(view, clientX, clientY, "left")
 
-      } else if (event.clientX <= handleWidth + left) {
-        cell = edgeCell(view, event, "left")
+      } else if (clientX <= handleWidth + left) {
+        cell = edgeCell(view, clientX, clientY, "left")
 
-      } else if (event.clientX >= right - handleWidth) {
-        cell = edgeCell(view, event, "right")
-      }
-
-      if (cell !== activeHandle) {
-        activeHandle = cell
-        view.dispatch(view.state.tr)
+      } else if (clientX >= right - handleWidth) {
+        cell = edgeCell(view, clientX, clientY, "right")
       }
     }
-  }
-}
 
-function handleMouseLeave () {
-  dragging = false
+    if (cell !== activeHandle) {
+      activeHandle = cell
+      view.dispatch(view.state.tr)
+    }
+  }
 }
 
 function handleMouseDown (view, event, handleWidth, cellMinWidth) {
@@ -128,11 +146,14 @@ function domCellAround(target) {
   return target
 }
 
-function edgeCell(view, event, side, debug) {
-  if (debug) {
-    debugger
-  }
-  const found = view.posAtCoords({left: event.clientX, top: event.clientY})
+function domTableAround(target) {
+  while (target && target.nodeName != "TABLE")
+    target = target.classList.contains("ProseMirror") ? null : target.parentNode
+  return target
+}
+
+function edgeCell(view, left, top, side) {
+  const found = view.posAtCoords({left, top})
   if (!found) return -1
 
   const {pos} = found

@@ -49,13 +49,11 @@ export class TableView {
 
     // ignore wrapper
     if (record.target == this.simplebar && (record.type == "attributes" || record.type == "childList")) {
-      console.log('ignoreMutation', true)
       return true
     }
 
     // ignore simplebar
     if (record.type == "attributes" && record.target.classList.value.indexOf('simplebar') > -1) {
-      console.log('ignoreMutation', true)
       return true
     }
 

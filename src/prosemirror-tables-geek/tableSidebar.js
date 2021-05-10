@@ -120,6 +120,7 @@ class sidebarDecoration {
       })
 
       sidebarRow.addEventListener('mousedown', () => {
+        if (view.dom.classList.contains('resize-row-cursor')) return
         isMouseDown = true
         selectedAnchorRow = row
         selectedHeadRow = row
@@ -127,6 +128,7 @@ class sidebarDecoration {
       })
 
       sidebarRow.addEventListener('mousemove', () => {
+        if (view.dom.classList.contains('resize-row-cursor')) return
         if (!isMouseDown) return
         if (selectedHeadRow === row) return
         selectedHeadRow = row
@@ -172,6 +174,7 @@ class sidebarDecoration {
         })
 
         sidebarCol.addEventListener('mousedown', () => {
+          if (view.dom.classList.contains('resize-col-cursor')) return
           isMouseDown = true
           selectedAnchorCol = col
           selectedHeadCol = col
@@ -179,6 +182,7 @@ class sidebarDecoration {
         })
 
         sidebarCol.addEventListener('mousemove', () => {
+          if (view.dom.classList.contains('resize-col-cursor')) return
           if (!isMouseDown) return
           if (selectedHeadCol === col) return
           selectedHeadCol = col

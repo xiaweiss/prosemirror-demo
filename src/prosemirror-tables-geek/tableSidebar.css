@@ -106,3 +106,8 @@
   border-right-color:#fff;
 }
 
+.ProseMirror.resize-row-cursor .ProseMirror-tableSidebar-row,
+.ProseMirror.resize-col-cursor .ProseMirror-tableSidebar-col {
+  cursor: inherit;
+}
+
