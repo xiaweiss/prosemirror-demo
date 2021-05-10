@@ -9,10 +9,6 @@ export class TableView {
     this.dom = document.createElement("div")
     this.dom.className = "ProseMirror-table-wrapper"
 
-    // this.before = this.dom.appendChild(document.createElement("div"))
-    // this.before.className = "ProseMirror-table-before"
-    // this.before.innerHTML = "header<br>header2"
-
     this.simplebar = this.dom.appendChild(document.createElement('div'))
     this.simplebar.setAttribute('data-simplebar', '')
     this.simplebar.setAttribute('data-simplebar-auto-hide', false)
@@ -22,7 +18,7 @@ export class TableView {
     updateColumns(node, this.colgroup, this.table, cellMinWidth)
     this.contentDOM = this.table.appendChild(document.createElement("tbody"))
 
-    // 鼠标右键点击时，阻止 selection，可以保持 CellSelection 不被取消
+    // NOTE: 鼠标右键点击时，阻止 selection，可以保持 CellSelection 不被取消
     this.table.addEventListener('mousedown', event => {
       if (event.button === 2) {
         const path = event.path || (event.composedPath && event.composedPath())

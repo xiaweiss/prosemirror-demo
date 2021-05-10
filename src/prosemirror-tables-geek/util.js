@@ -107,3 +107,13 @@ export function columnIsHeader(map, table, col) {
       return false
   return true
 }
+
+export function setAllColumnWidth (tr) {
+  // TODO
+  return tr
+}
+
+export function getContentWidth (element) {
+  const {paddingLeft, paddingRight} = getComputedStyle(element)
+  return element.clientWidth - parseFloat(paddingLeft) - parseFloat(paddingRight)
+}

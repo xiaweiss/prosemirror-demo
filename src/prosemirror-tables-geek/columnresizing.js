@@ -1,6 +1,6 @@
 import {Plugin, PluginKey} from "prosemirror-state"
 import {Decoration, DecorationSet} from "prosemirror-view"
-import {cellAround, pointsAtCell, setAttr, isInTable} from "./util"
+import {cellAround, setAttr, isInTable, setAllColumnWidth} from "./util"
 import {TableMap} from './tablemap'
 import {tableNodeTypes} from './schema'
 import {TableView, updateColumns} from "./tableview"
@@ -14,21 +14,21 @@ let startWidth = 0
 
 export const key = new PluginKey("tableColumnResizing")
 
-export function columnResizing({ handleWidth = 5, cellMinWidth = 25, View = TableView, lastColumnResizable = true } = {}) {
+export function columnResizing({ handleWidth = 5, cellMinWidth = 25, View = TableView} = {}) {
   return new Plugin({
     key,
     state: {
       init(_, state) {
         this.spec.props.nodeViews[tableNodeTypes(state.schema).table.name] =
-          (node, view) => new View(node, cellMinWidth, view)
+          (node, view) => new View(node, cellMinWidth)
         return null
       },
-      apply(tr, value) {
+      apply() {
         return null
       }
     },
     props: {
-      attributes(state) {
+      attributes() {
         return activeHandle > -1 ? {class: "resize-col-cursor"} : null
       },
 
@@ -77,6 +77,8 @@ function handleMouseMove (view, event, handleWidth, cellMinWidth) {
     if (target) {
       const {left, right} = target.getBoundingClientRect()
       const tableLeft  = table.getBoundingClientRect().left
+      const tableRight  = table.getBoundingClientRect().right
+
 
       // console.log('X', event.clientX, left, right)
 
@@ -87,7 +89,7 @@ function handleMouseMove (view, event, handleWidth, cellMinWidth) {
 
       // some edge cases, the `clientX` is more than the bounding rect of the target element.
       // For these cases, we should select the cell on the left
-      } else if (clientX > right) {
+      } else if (clientX > right && clientX <= tableRight) {
         cell = edgeCell(view, clientX, clientY, "left")
 
       } else if (clientX <= handleWidth + left) {

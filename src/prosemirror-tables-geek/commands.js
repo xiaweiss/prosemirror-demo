@@ -14,7 +14,8 @@ import {
   moveCellForward,
   removeColSpan,
   selectionCell,
-  setAttr
+  setAttr,
+  setAllColumnWidth
 } from "./util"
 import {tableNodeTypes} from "./schema"
 
@@ -65,8 +66,9 @@ function addColumn(tr, {map, tableStart, table}, col) {
 function addColumnBefore(state, dispatch) {
   if (!isInTable(state)) return false
   if (dispatch) {
-    let rect = selectedRect(state)
-    dispatch(addColumn(state.tr, rect, rect.left))
+    const rect = selectedRect(state)
+    const tr = setAllColumnWidth(state.tr)
+    dispatch(addColumn(tr, rect, rect.left))
   }
   return true
 }
@@ -76,8 +78,9 @@ function addColumnBefore(state, dispatch) {
 function addColumnAfter(state, dispatch) {
   if (!isInTable(state)) return false
   if (dispatch) {
-    let rect = selectedRect(state)
-    dispatch(addColumn(state.tr, rect, rect.right))
+    const rect = selectedRect(state)
+    const tr = setAllColumnWidth(state.tr)
+    dispatch(addColumn(tr, rect, rect.right))
   }
   return true
 }
