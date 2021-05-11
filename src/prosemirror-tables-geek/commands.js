@@ -15,26 +15,10 @@ import {
   removeColSpan,
   selectionCell,
   setAttr,
-  setAllColumnWidth
+  setAllColumnWidth,
+  selectedRect
 } from "./util"
 import {tableNodeTypes} from "./schema"
-
-// Helper to get the selected rectangle in a table, if any. Adds table
-// map, table node, and table start offset to the object for
-// convenience.
-function selectedRect(state) {
-  let sel = state.selection, $pos = selectionCell(state)
-  let table = $pos.node(-1), tableStart = $pos.start(-1), map = TableMap.get(table)
-  let rect
-  if (sel instanceof CellSelection)
-    rect = map.rectBetween(sel.$anchorCell.pos - tableStart, sel.$headCell.pos - tableStart)
-  else
-    rect = map.findCell($pos.pos - tableStart)
-  rect.tableStart = tableStart
-  rect.map = map
-  rect.table = table
-  return rect
-}
 
 // Add a column at the given position in a table.
 function addColumn(tr, {map, tableStart, table}, col) {
@@ -61,25 +45,25 @@ function addColumn(tr, {map, tableStart, table}, col) {
   return tr
 }
 
-// :: (EditorState, dispatch: ?(tr: Transaction)) → bool
+// :: (EditorState, dispatch: ?(tr: Transaction), EditorView) → bool
 // Command to add a column before the column with the selection.
-function addColumnBefore(state, dispatch) {
+function addColumnBefore(state, dispatch, view) {
   if (!isInTable(state)) return false
   if (dispatch) {
     const rect = selectedRect(state)
-    const tr = setAllColumnWidth(state.tr)
+    const tr = view ? setAllColumnWidth(state.tr, view, rect) : state.tr
     dispatch(addColumn(tr, rect, rect.left))
   }
   return true
 }
 
-// :: (EditorState, dispatch: ?(tr: Transaction)) → bool
+// :: (EditorState, dispatch: ?(tr: Transaction, EditorView)) → bool
 // Command to add a column after the column with the selection.
-function addColumnAfter(state, dispatch) {
+function addColumnAfter(state, dispatch, view) {
   if (!isInTable(state)) return false
   if (dispatch) {
     const rect = selectedRect(state)
-    const tr = setAllColumnWidth(state.tr)
+    const tr = view ? setAllColumnWidth(state.tr, view, rect) : state.tr
     dispatch(addColumn(tr, rect, rect.right))
   }
   return true
@@ -685,8 +669,7 @@ export {
   goToNextCell,
 
   isInTable,
-  TableMap,
-  selectedRect
+  TableMap
 
   // NOTE: 目前没有 header
   // toggleHeader

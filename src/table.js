@@ -34,6 +34,16 @@ const content = createElement(`
 // <img src="https://xiawei.cc/images/avatar2.jpg" alt="" />
 // <p>The table:</p>
 // <table class="table_prosemirror">
+//   <tr><td>0</td><td data-colwidth="100">1</td><td>2</td></tr>
+//   <tr><td>3</td><td>4</td><td>5</td></tr>
+// </table>
+// `)
+
+// const content = createElement(`
+// <h2>Example content</h2>
+// <img src="https://xiawei.cc/images/avatar2.jpg" alt="" />
+// <p>The table:</p>
+// <table class="table_prosemirror">
 //   <tr><td colspan="2" rowspan="2">One</td><td>Two</td></tr>
 //   <tr><td>Three</td></tr>
 //   <tr><td></td><td></td></tr>

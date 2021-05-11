@@ -1,6 +1,5 @@
-import {Decoration, DecorationSet} from "prosemirror-view"
 import {Plugin, PluginKey} from "prosemirror-state"
-import {CellSelection, TableMap, selectedRect} from "./index"
+import {CellSelection} from './cellselection'
 import './tableMenu.css'
 
 import {
@@ -78,11 +77,11 @@ class tableMenuView {
       },
       {
         text: '向左插入 1 列',
-        command: () => addColumnBefore (state, dispatch)
+        command: () => addColumnBefore (state, dispatch, view)
       },
       {
         text: '向右插入 1 列',
-        command: () => addColumnAfter(state, dispatch)
+        command: () => addColumnAfter(state, dispatch, view)
       },
       { hr: true },
       {

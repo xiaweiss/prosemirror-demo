@@ -108,12 +108,55 @@ export function columnIsHeader(map, table, col) {
   return true
 }
 
-export function setAllColumnWidth (tr) {
-  // TODO
-  return tr
+// Helper to get the selected rectangle in a table, if any. Adds table
+// map, table node, and table start offset to the object for
+// convenience.
+export function selectedRect(state) {
+  let sel = state.selection, $pos = selectionCell(state)
+  let table = $pos.node(-1), tableStart = $pos.start(-1), map = TableMap.get(table)
+  let rect
+  if (sel instanceof CellSelection)
+    rect = map.rectBetween(sel.$anchorCell.pos - tableStart, sel.$headCell.pos - tableStart)
+  else
+    rect = map.findCell($pos.pos - tableStart)
+  rect.tableStart = tableStart
+  rect.map = map
+  rect.table = table
+  return rect
 }
 
-export function getContentWidth (element) {
-  const {paddingLeft, paddingRight} = getComputedStyle(element)
-  return element.clientWidth - parseFloat(paddingLeft) - parseFloat(paddingRight)
+export function currentColWidth(view, cellPos, {colspan, colwidth}) {
+  const width = colwidth && colwidth[colwidth.length - 1]
+  if (width) return width
+
+  const dom = view.domAtPos(cellPos)
+  const node = dom.node.childNodes[dom.offset]
+  console.log(node)
+  let domWidth = node.offsetWidth, parts = colspan
+  if (colwidth) for (let i = 0; i < colspan; i++) if (colwidth[i]) {
+    domWidth -= colwidth[i]
+    parts--
+  }
+  return domWidth / parts
+}
+
+export function setAllColumnWidth (tr, view, {map, tableStart, table}) {
+  for (let col = 0; col < map.width; col++) {
+    // check every cell of col
+    for (let row = 0; row < map.height; row++) {
+      const mapIndex = row * map.width + col
+      const pos = map.map[mapIndex]
+      const {attrs} = table.nodeAt(pos)
+      if (attrs.colspan === 1 && attrs.colwidth) continue
+
+      const width = currentColWidth(view, tableStart + pos, attrs)
+      const index = attrs.colspan === 1 ? 0 : col - map.colCount(pos)
+
+      if (attrs.colwidth && attrs.colwidth[index] == width) continue
+      const colwidth = new Array(attrs.colspan).fill(0)
+      colwidth[index] = width
+      tr.setNodeMarkup(tableStart + pos, null, setAttr(attrs, "colwidth", colwidth))
+    }
+  }
+  return tr
 }

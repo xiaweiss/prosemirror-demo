@@ -1,9 +1,9 @@
 import {Plugin, PluginKey} from "prosemirror-state"
 import {Decoration, DecorationSet} from "prosemirror-view"
-import {cellAround, setAttr, isInTable, setAllColumnWidth} from "./util"
+import {cellAround, setAttr, isInTable, setAllColumnWidth, currentColWidth} from "./util"
 import {TableMap} from './tablemap'
 import {tableNodeTypes} from './schema'
-import {TableView, updateColumns} from "./tableview"
+import {TableView} from "./tableview"
 import './columnResizing.css'
 
 let dragging = false
@@ -59,7 +59,6 @@ function handleMouseMove (view, event, handleWidth, cellMinWidth) {
 
     // sidebar
     if (!target && isInTable(view.state)) {
-      console.log('sidebar')
       clientY += 10 // sidebar height
       target = domCellAround(document.elementFromPoint(clientX, clientY))
       table = domTableAround(target)
@@ -117,16 +116,28 @@ function handleMouseDown (view, event, handleWidth, cellMinWidth) {
 
   const cell = view.state.doc.nodeAt(activeHandle)
   const width = currentColWidth(view, activeHandle, cell.attrs)
+  let mousemoveStart = true
+
   startWidth = width
-  updateColumnWidth(view, activeHandle, width, false)
 
   function onMouseMove (event) {
     // when change column width, stop selection
     event.preventDefault()
     if (dragging) {
+      const $cell = view.state.doc.resolve(activeHandle)
+      const table = $cell.node(-1), map = TableMap.get(table), tableStart = $cell.start(-1)
+      const col = map.colCount($cell.pos - tableStart) + $cell.nodeAfter.attrs.colspan - 1
+      // NOTE: 这里多设置一次，mousemove 时会覆盖这一条 history
+      if (mousemoveStart) {
+        const tr = setAllColumnWidth(view.state.tr, view, {map, tableStart, table})
+        updateColumnWidth(tr, view, {map, tableStart, table, col}, width, false)
+        mousemoveStart = false
+      }
+
       const offset = event.clientX - startX
       const draggedWidth = Math.max(cellMinWidth, startWidth + offset)
-      updateColumnWidth(view, activeHandle, draggedWidth, dragging)
+
+      updateColumnWidth(view.state.tr, view, {map, tableStart, table, col}, draggedWidth, true)
     }
   }
 
@@ -144,7 +155,8 @@ function handleMouseDown (view, event, handleWidth, cellMinWidth) {
 
 function domCellAround(target) {
   while (target && target.nodeName != "TD" && target.nodeName != "TH")
-    target = target.classList.contains("ProseMirror") ? null : target.parentNode
+    // NOTE: when mousemove outside of proseMirror, sometime 'target.classList' is undefined
+    target = (target.classList && target.classList.contains("ProseMirror")) ? null : target.parentNode
   return target
 }
 
@@ -170,25 +182,7 @@ function edgeCell(view, left, top, side) {
   return index % map.width == 0 ? -1 : start + map.map[index - 1]
 }
 
-function currentColWidth(view, cellPos, {colspan, colwidth}) {
-  const width = colwidth && colwidth[colwidth.length - 1]
-  if (width) return width
-
-  const dom = view.domAtPos(cellPos)
-  const node = dom.node.childNodes[dom.offset]
-  let domWidth = node.offsetWidth, parts = colspan
-  if (colwidth) for (let i = 0; i < colspan; i++) if (colwidth[i]) {
-    domWidth -= colwidth[i]
-    parts--
-  }
-  return domWidth / parts
-}
-
-function updateColumnWidth(view, cell, width, dragging) {
-  let $cell = view.state.doc.resolve(cell)
-  let table = $cell.node(-1), map = TableMap.get(table), start = $cell.start(-1)
-  let col = map.colCount($cell.pos - start) + $cell.nodeAfter.attrs.colspan - 1
-  let tr = view.state.tr
+function updateColumnWidth(tr, view, {map, tableStart, table, col}, width, replaceHistory) {
   for (let row = 0; row < map.height; row++) {
     let mapIndex = row * map.width + col
     // Rowspanning cell that has already been handled
@@ -198,8 +192,8 @@ function updateColumnWidth(view, cell, width, dragging) {
     if (attrs.colwidth && attrs.colwidth[index] == width) continue
     let colwidth = attrs.colwidth ? attrs.colwidth.slice() : zeroes(attrs.colspan)
     colwidth[index] = width
-    tr.setNodeMarkup(start + pos, null, setAttr(attrs, "colwidth", colwidth))
-    tr.setMeta('replaceHistory', dragging)
+    tr.setNodeMarkup(tableStart + pos, null, setAttr(attrs, "colwidth", colwidth))
+    tr.setMeta('replaceHistory', replaceHistory)
   }
   if (tr.docChanged) view.dispatch(tr)
 }
