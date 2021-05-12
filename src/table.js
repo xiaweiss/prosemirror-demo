@@ -11,33 +11,33 @@ import {deleteSelection} from 'prosemirror-commands'
  */
 import createElement from './utils/create-element'
 
-const content = createElement(`
-<h2>Example content</h2>
-<img src="https://xiawei.cc/images/avatar2.jpg" alt="" />
-<p>The table:</p>
-<table class="table_prosemirror">
-  <tr><td data-colwidth="100">One</td><td>Two</td><td>Three</td><td></td></tr>
-  <tr><td data-colwidth="100">Four</td><td>Five</td><td>Six</td><td></td></tr>
-  <tr><td data-colwidth="100"></td><td></td><td></td></tr>
-</table>
-
-<p>The table 2:</p>
-<table class="table_prosemirror">
-  <tr><td>One</td><td>Two</td><td>Three</td><td></td></tr>
-  <tr><td>Four</td><td>Five</td><td>Six</td><td></td></tr>
-  <tr><td></td><td></td><td></td></tr>
-</table>
-`)
-
 // const content = createElement(`
 // <h2>Example content</h2>
 // <img src="https://xiawei.cc/images/avatar2.jpg" alt="" />
 // <p>The table:</p>
 // <table class="table_prosemirror">
-//   <tr><td>0</td><td data-colwidth="100">1</td><td>2</td></tr>
-//   <tr><td>3</td><td>4</td><td>5</td></tr>
+//   <tr><td data-colwidth="100">One</td><td>Two</td><td>Three</td><td></td></tr>
+//   <tr><td data-colwidth="100">Four</td><td>Five</td><td>Six</td><td></td></tr>
+//   <tr><td data-colwidth="100"></td><td></td><td></td></tr>
+// </table>
+
+// <p>The table 2:</p>
+// <table class="table_prosemirror">
+//   <tr><td>One</td><td>Two</td><td>Three</td><td></td></tr>
+//   <tr><td>Four</td><td>Five</td><td>Six</td><td></td></tr>
+//   <tr><td></td><td></td><td></td></tr>
 // </table>
 // `)
+
+const content = createElement(`
+<h2>Example content</h2>
+<img src="https://xiawei.cc/images/avatar2.jpg" alt="" />
+<p>The table:</p>
+<table class="table_prosemirror">
+  <tr><td>0</td><td colspan="2" data-colwidth="100,200">1 2</td></tr>
+  <tr><td>3</td><td>4</td><td>5</td></tr>
+</table>
+`)
 
 // const content = createElement(`
 // <h2>Example content</h2>

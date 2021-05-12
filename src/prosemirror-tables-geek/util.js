@@ -131,7 +131,7 @@ export function currentColWidth(view, cellPos, {colspan, colwidth}) {
 
   const dom = view.domAtPos(cellPos)
   const node = dom.node.childNodes[dom.offset]
-  console.log(node)
+
   let domWidth = node.offsetWidth, parts = colspan
   if (colwidth) for (let i = 0; i < colspan; i++) if (colwidth[i]) {
     domWidth -= colwidth[i]
@@ -139,6 +139,25 @@ export function currentColWidth(view, cellPos, {colspan, colwidth}) {
   }
   return domWidth / parts
 }
+
+// export function currentColWidth(view, cellPos, {colspan, colwidth}) {
+//   if (colwidth) {
+//     if (colspan === 1) return colwidth[colwidth.length - 1]
+//     debugger
+
+//     const rect = selectedRect(view.state)
+//     const {map, tableStart, table} = rect
+//     const index = rect.left - map.colCount(cellPos - tableStart)
+
+//     return colwidth[index]
+//   } else {
+//     const dom = view.domAtPos(cellPos)
+//     const node = dom.node.childNodes[dom.offset]
+//     const domWidth = node.offsetWidth
+
+//     return domWidth
+//   }
+// }
 
 export function setAllColumnWidth (tr, view, {map, tableStart, table}) {
   for (let col = 0; col < map.width; col++) {

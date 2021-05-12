@@ -114,8 +114,13 @@ function handleMouseDown (view, event, handleWidth, cellMinWidth) {
   event.preventDefault()
   startX = event.clientX
 
+  const $cell = view.state.doc.resolve(activeHandle)
+  const table = $cell.node(-1), map = TableMap.get(table), tableStart = $cell.start(-1)
+  const col = map.colCount($cell.pos - tableStart) + $cell.nodeAfter.attrs.colspan - 1
+
   const cell = view.state.doc.nodeAt(activeHandle)
   const width = currentColWidth(view, activeHandle, cell.attrs)
+
   let mousemoveStart = true
 
   startWidth = width
@@ -124,9 +129,6 @@ function handleMouseDown (view, event, handleWidth, cellMinWidth) {
     // when change column width, stop selection
     event.preventDefault()
     if (dragging) {
-      const $cell = view.state.doc.resolve(activeHandle)
-      const table = $cell.node(-1), map = TableMap.get(table), tableStart = $cell.start(-1)
-      const col = map.colCount($cell.pos - tableStart) + $cell.nodeAfter.attrs.colspan - 1
       // NOTE: 这里多设置一次，mousemove 时会覆盖这一条 history
       if (mousemoveStart) {
         const tr = setAllColumnWidth(view.state.tr, view, {map, tableStart, table})
