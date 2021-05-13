@@ -2,8 +2,6 @@ import {Plugin, PluginKey} from "prosemirror-state"
 import {Decoration, DecorationSet} from "prosemirror-view"
 import {cellAround, setAttr, isInTable, setAllColumnWidth, currentColWidth} from "./util"
 import {TableMap} from './tablemap'
-import {tableNodeTypes} from './schema'
-import {TableView} from "./tableview"
 import './columnResizing.css'
 
 let dragging = false
@@ -14,13 +12,11 @@ let startWidth = 0
 
 export const key = new PluginKey("tableColumnResizing")
 
-export function columnResizing({ handleWidth = 5, cellMinWidth = 25, View = TableView} = {}) {
+export function columnResizing({ handleWidth = 5, cellMinWidth = 20} = {}) {
   return new Plugin({
     key,
     state: {
-      init(_, state) {
-        this.spec.props.nodeViews[tableNodeTypes(state.schema).table.name] =
-          (node, view) => new View(node, cellMinWidth)
+      init() {
         return null
       },
       apply() {
@@ -33,8 +29,8 @@ export function columnResizing({ handleWidth = 5, cellMinWidth = 25, View = Tabl
       },
 
       handleDOMEvents: {
-        mousemove(view, event) { handleMouseMove(view, event, handleWidth, cellMinWidth) },
-        mousedown(view, event) { handleMouseDown(view, event, handleWidth, cellMinWidth) },
+        mousemove(view, event) { handleMouseMove(view, event, cellMinWidth, handleWidth) },
+        mousedown(view, event) { handleMouseDown(view, event, cellMinWidth) },
       },
 
       decorations(state) {
@@ -47,7 +43,7 @@ export function columnResizing({ handleWidth = 5, cellMinWidth = 25, View = Tabl
   })
 }
 
-function handleMouseMove (view, event, handleWidth, cellMinWidth) {
+function handleMouseMove (view, event, cellMinWidth, handleWidth) {
   if (Date.now() - prevTime < 50) return
   prevTime = Date.now()
 
@@ -65,7 +61,7 @@ function handleMouseMove (view, event, handleWidth, cellMinWidth) {
 
       if (target) {
         function sidebarMousedown (event) {
-          handleMouseDown(view, event, handleWidth, cellMinWidth)
+          handleMouseDown(view, event, cellMinWidth)
         }
 
         event.target.removeEventListener('mousedown', sidebarMousedown)
@@ -106,7 +102,7 @@ function handleMouseMove (view, event, handleWidth, cellMinWidth) {
   }
 }
 
-function handleMouseDown (view, event, handleWidth, cellMinWidth) {
+function handleMouseDown (view, event, cellMinWidth) {
   if (activeHandle === -1) return false
 
   dragging = true
@@ -118,8 +114,8 @@ function handleMouseDown (view, event, handleWidth, cellMinWidth) {
   const table = $cell.node(-1), map = TableMap.get(table), tableStart = $cell.start(-1)
   const col = map.colCount($cell.pos - tableStart) + $cell.nodeAfter.attrs.colspan - 1
 
-  const cell = view.state.doc.nodeAt(activeHandle)
-  const width = currentColWidth(view, activeHandle, cell.attrs)
+  const colWidth = currentColWidth(view, activeHandle)
+  const width = colWidth[colWidth.length - 1]
 
   let mousemoveStart = true
 

@@ -22,12 +22,7 @@ import {
 import {tableNodeTypes} from "./schema"
 
 // Add a column at the given position in a table.
-function addColumn(tr, view, {map, tableStart, table}, col, currentCol) {
-  const currentColPos = map.map[currentCol]
-  const currentColAttrs = table.nodeAt(currentColPos).attrs
-  const width = currentColWidth(view, tableStart + currentColPos, currentColAttrs)
-  console.log('width', width)
-
+function addColumn(tr, {map, tableStart, table}, col, width) {
   let refColumn = col > 0 ? -1 : 0
   if (columnIsHeader(map, table, col + refColumn))
     refColumn = col == 0 || col == map.width ? null : 0
@@ -36,17 +31,15 @@ function addColumn(tr, view, {map, tableStart, table}, col, currentCol) {
     let index = row * map.width + col
     // If this position falls inside a col-spanning cell
     if (col > 0 && col < map.width && map.map[index - 1] == map.map[index]) {
-      let pos = map.map[index], cell = table.nodeAt(pos)
-      // TODO
-      // const attrs = setAttr(cell.attrs, 'colwidth', [width])
+      const pos = map.map[index], cell = table.nodeAt(pos)
       tr.setNodeMarkup(tr.mapping.map(tableStart + pos), null,
                        addColSpan(cell.attrs, col - map.colCount(pos)))
       // Skip ahead if rowspan > 1
       row += cell.attrs.rowspan - 1
     } else {
-      let type = refColumn == null ? tableNodeTypes(table.type.schema).cell
+      const type = refColumn == null ? tableNodeTypes(table.type.schema).cell
           : table.nodeAt(map.map[index + refColumn]).type
-      let pos = map.positionAt(row, col, table)
+      const pos = map.positionAt(row, col, table)
       tr.insert(tr.mapping.map(tableStart + pos), type.createAndFill({colwidth: [width]}))
     }
   }
@@ -60,7 +53,17 @@ function addColumnBefore(state, dispatch, view) {
   if (dispatch) {
     const rect = selectedRect(state)
     const tr = setAllColumnWidth(state.tr, view, rect)
-    dispatch(addColumn(tr, view, rect, rect.left, rect.left))
+
+    const {map, tableStart} = rect
+
+    // cell of left top corner
+    const mapIndex = rect.top * map.width + (rect.left)
+    const colPos = map.map[mapIndex]
+    const colWidth = currentColWidth(view, tableStart + colPos)
+
+    // if colspan > 1, get left cell width
+    const width = colWidth[0]
+    dispatch(addColumn(tr, rect, rect.left, width))
   }
   return true
 }
@@ -72,7 +75,17 @@ function addColumnAfter(state, dispatch, view) {
   if (dispatch) {
     const rect = selectedRect(state)
     const tr = setAllColumnWidth(state.tr, view, rect)
-    dispatch(addColumn(tr, view, rect, rect.right, rect.right - 1))
+
+    const {map, tableStart} = rect
+
+    // cell of right top corner
+    const mapIndex = rect.top * map.width + (rect.right - 1)
+    const colPos = map.map[mapIndex]
+    const colWidth = currentColWidth(view, tableStart + colPos)
+
+    // if colspan > 1, get right cell width
+    const width = colWidth[colWidth.length - 1]
+    dispatch(addColumn(tr, rect, rect.right, width))
   }
   return true
 }

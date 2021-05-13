@@ -125,39 +125,53 @@ export function selectedRect(state) {
   return rect
 }
 
-export function currentColWidth(view, cellPos, {colspan, colwidth}) {
-  const width = colwidth && colwidth[colwidth.length - 1]
-  if (width) return width
-
-  const dom = view.domAtPos(cellPos)
-  const node = dom.node.childNodes[dom.offset]
-
-  let domWidth = node.offsetWidth, parts = colspan
-  if (colwidth) for (let i = 0; i < colspan; i++) if (colwidth[i]) {
-    domWidth -= colwidth[i]
-    parts--
-  }
-  return domWidth / parts
+function getDomWidth (view, pos) {
+  const dom = view.domAtPos(pos)
+  const domNode = dom.node.childNodes[dom.offset]
+  const domWidth = domNode.offsetWidth
+  return domWidth
 }
 
-// export function currentColWidth(view, cellPos, {colspan, colwidth}) {
-//   if (colwidth) {
-//     if (colspan === 1) return colwidth[colwidth.length - 1]
-//     debugger
+export function currentColWidth(view, cellPos, cellAttrs) {
+  const {colspan, colwidth} = cellAttrs || view.state.tr.doc.nodeAt(cellPos).attrs
 
-//     const rect = selectedRect(view.state)
-//     const {map, tableStart, table} = rect
-//     const index = rect.left - map.colCount(cellPos - tableStart)
+  if (colwidth) {
+    return colwidth
+  } else {
+    if (colspan === 1) return [getDomWidth(view, cellPos)]
 
-//     return colwidth[index]
-//   } else {
-//     const dom = view.domAtPos(cellPos)
-//     const node = dom.node.childNodes[dom.offset]
-//     const domWidth = node.offsetWidth
+    // merged cell
+    const totalWidth = getDomWidth(view, cellPos)
+    const $cell = view.state.tr.doc.resolve(cellPos)
+    const table = $cell.node(-1)
+    const tableStart = $cell.start(-1)
+    const map = TableMap.get(table)
+    const colStart = map.colCount(cellPos - tableStart)
 
-//     return domWidth
-//   }
-// }
+    // if colspan === 2, default colwidth is [totalWidth, 0]
+    const colWidth = new Array(colspan).fill(0)
+    colWidth[0] = totalWidth
+
+    for (let col = colStart; col < colStart + colspan; col++) {
+      // check every cell of col, get cell width
+      let width = Infinity
+      for (let row = 0; row < map.height; row++) {
+        const mapIndex = row * map.width + col
+        const pos = map.map[mapIndex]
+        const {attrs} = table.nodeAt(pos)
+
+        width = Math.min(width, getDomWidth(view, tableStart + pos))
+        if (attrs.colspan === 1) break
+      }
+
+      // add cell width to colWidth
+      if (width !== totalWidth) {
+        colWidth[col - colStart] = width
+      }
+    }
+    return colWidth
+  }
+}
 
 export function setAllColumnWidth (tr, view, {map, tableStart, table}) {
   for (let col = 0; col < map.width; col++) {
@@ -168,13 +182,8 @@ export function setAllColumnWidth (tr, view, {map, tableStart, table}) {
       const {attrs} = table.nodeAt(pos)
       if (attrs.colspan === 1 && attrs.colwidth) continue
 
-      const width = currentColWidth(view, tableStart + pos, attrs)
-      const index = attrs.colspan === 1 ? 0 : col - map.colCount(pos)
-
-      if (attrs.colwidth && attrs.colwidth[index] == width) continue
-      const colwidth = new Array(attrs.colspan).fill(0)
-      colwidth[index] = width
-      tr.setNodeMarkup(tableStart + pos, null, setAttr(attrs, "colwidth", colwidth))
+      const colWidth = currentColWidth(view, tableStart + pos, attrs)
+      tr.setNodeMarkup(tableStart + pos, null, setAttr(attrs, "colwidth", colWidth))
     }
   }
   return tr

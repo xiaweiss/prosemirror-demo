@@ -3,9 +3,8 @@ import 'simplebar/dist/simplebar.css'
 import './tableview.css'
 
 export class TableView {
-  constructor(node, cellMinWidth) {
+  constructor(node) {
     this.node = node
-    this.cellMinWidth = cellMinWidth
     this.dom = document.createElement("div")
     this.dom.className = "ProseMirror-table-wrapper"
 
@@ -15,7 +14,7 @@ export class TableView {
 
     this.table = this.simplebar.appendChild(document.createElement("table"))
     this.colgroup = this.table.appendChild(document.createElement("colgroup"))
-    updateColumns(node, this.colgroup, this.table, cellMinWidth)
+    updateColumns(node, this.colgroup, this.table)
     this.contentDOM = this.table.appendChild(document.createElement("tbody"))
 
     // NOTE: 鼠标右键点击时，阻止 selection，可以保持 CellSelection 不被取消
@@ -32,11 +31,10 @@ export class TableView {
       }
     })
   }
-
   update(node) {
     if (node.type != this.node.type) return false
     this.node = node
-    updateColumns(node, this.colgroup, this.table, this.cellMinWidth)
+    updateColumns(node, this.colgroup, this.table)
     return true
   }
 
@@ -59,15 +57,17 @@ export class TableView {
   }
 }
 
-export function updateColumns(node, colgroup, table, cellMinWidth, overrideCol, overrideValue) {
+export function updateColumns(node, colgroup, table, overrideCol, overrideValue) {
   let totalWidth = 0, fixedWidth = true
   let nextDOM = colgroup.firstChild, row = node.firstChild
   for (let i = 0, col = 0; i < row.childCount; i++) {
-    let {colspan, colwidth} = row.child(i).attrs
+    const {colspan, colwidth} = row.child(i).attrs
     for (let j = 0; j < colspan; j++, col++) {
-      let hasWidth = overrideCol == col ? overrideValue : colwidth && colwidth[j]
-      let cssWidth = hasWidth ? hasWidth + "px" : ""
-      totalWidth += hasWidth || cellMinWidth
+      const hasWidth = overrideCol == col ? overrideValue : colwidth && colwidth[j]
+      const cssWidth = hasWidth ? hasWidth + "px" : ""
+
+      totalWidth += hasWidth || 0
+
       if (!hasWidth) fixedWidth = false
       if (!nextDOM) {
         colgroup.appendChild(document.createElement("col")).style.width = cssWidth

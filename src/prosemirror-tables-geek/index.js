@@ -72,7 +72,7 @@ export {CellSelection} from "./cellselection"
 export {TableMap} from "./tablemap"
 export {tableEditingKey};
 export * from "./commands"
-export {updateColumns as updateColumnsOnResize, TableView} from "./tableview"
+export {TableView} from "./tableview"
 export {pastedCells as __pastedCells, insertCells as __insertCells, clipCells as __clipCells} from "./copypaste"
 // table plugins
 export {columnResizing} from "./columnresizing"

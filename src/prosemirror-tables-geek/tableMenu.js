@@ -43,8 +43,8 @@ class tableMenuView {
   }
 
   data () {
-    const { state, dispatch } = this.view
-    const sel = state.selection
+    // NOTE: use 'view.state' to get latest state, don't direct use state from 'const {state} = view'
+    const { dispatch } = this.view
 
     return [
       {
@@ -63,35 +63,38 @@ class tableMenuView {
       },
       {
         text: '清空所选区域',
-        disabled: !(sel instanceof CellSelection),
-        command: () => deleteSelection(state, dispatch)
+        disabled: !(view.state.selection instanceof CellSelection),
+        command: () => deleteSelection(view.state, dispatch)
       },
       { hr: true },
       {
         text: '向上插入 1 行',
-        command: () => addRowBefore(state, dispatch)
+        command: () => addRowBefore(view.state, dispatch)
       },
       {
         text: '向下插入 1 行',
-        command: () => addRowAfter(state, dispatch)
+        command: () => addRowAfter(view.state, dispatch)
       },
       {
         text: '向左插入 1 列',
-        command: () => addColumnBefore (state, dispatch, view)
+        command: () => addColumnBefore (view.state, dispatch, view)
       },
       {
         text: '向右插入 1 列',
-        command: () => addColumnAfter(state, dispatch, view)
+        command: () => addColumnAfter(view.state, dispatch, view)
       },
       { hr: true },
       {
         text: '合并单元格',
-        disabled: !(sel instanceof CellSelection) || sel.$anchorCell.pos === sel.$headCell.pos,
-        command: () => mergeCells(state, dispatch)
+        disabled:
+          !(view.state.selection instanceof CellSelection) ||
+          view.state.selection.$anchorCell.pos === view.state.selection.$headCell.pos,
+        command: () => mergeCells(view.state, dispatch)
       },
       {
         text: '拆分单元格',
         disabled: function () {
+          const sel = view.state.selection
           let cellNode
           if (sel instanceof CellSelection) {
             if (sel.$anchorCell.pos != sel.$headCell.pos) return true
@@ -100,24 +103,23 @@ class tableMenuView {
             cellNode = cellWrapping(sel.$from)
             if (!cellNode) return true
           }
-          if (cellNode.attrs.colspan == 1 && cellNode.attrs.rowspan == 1) {return true}
-          return false
+          return (cellNode.attrs.colspan === 1 && cellNode.attrs.rowspan === 1)
         }(),
-        command: () => splitCell(state, dispatch)
+        command: () => splitCell(view.state, dispatch)
       },
       { hr: true },
       {
         text: '删除选中行',
-        command: () => deleteRow(state, dispatch)
+        command: () => deleteRow(view.state, dispatch)
       },
       {
         text: '删除选中列',
-        command: () => deleteColumn(state, dispatch)
+        command: () => deleteColumn(view.state, dispatch)
       },
       { hr: true },
       {
         text: '删除表格',
-        command: () => deleteTable(state, dispatch)
+        command: () => deleteTable(view.state, dispatch)
       },
     ]
   }
