@@ -3,7 +3,7 @@ import 'simplebar/dist/simplebar.css'
 import './tableview.css'
 
 export class TableView {
-  constructor(node) {
+  constructor (node) {
     this.node = node
     this.dom = document.createElement("div")
     this.dom.className = "ProseMirror-table-wrapper"
@@ -31,14 +31,14 @@ export class TableView {
       }
     })
   }
-  update(node) {
+  update (node) {
     if (node.type != this.node.type) return false
     this.node = node
     updateColumns(node, this.colgroup, this.table)
     return true
   }
 
-  ignoreMutation(record) {
+  ignoreMutation (record) {
     // console.log('ignoreMutation', record, record.type == "attributes" && record.target.classList.value.indexOf('simplebar') > -1)
 
     // ignore wrapper
@@ -57,7 +57,7 @@ export class TableView {
   }
 }
 
-export function updateColumns(node, colgroup, table, overrideCol, overrideValue) {
+export function updateColumns (node, colgroup, table, overrideCol, overrideValue) {
   let totalWidth = 0, fixedWidth = true
   let nextDOM = colgroup.firstChild, row = node.firstChild
   for (let i = 0, col = 0; i < row.childCount; i++) {

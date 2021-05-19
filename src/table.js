@@ -197,7 +197,7 @@ window.commands = {
   deleteSelection: () => deleteSelection(view.state, dispatch),
 }
 
-window.Selection = Selection
-window.NodeSelection = NodeSelection
-window.TextSelection = TextSelection
-window.CellSelection = CellSelection
+// window.Selection = Selection
+// window.NodeSelection = NodeSelection
+// window.TextSelection = TextSelection
+// window.CellSelection = CellSelection

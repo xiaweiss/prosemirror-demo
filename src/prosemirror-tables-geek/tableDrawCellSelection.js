@@ -1,7 +1,7 @@
 import {Decoration, DecorationSet} from "prosemirror-view"
 import {Plugin, PluginKey} from "prosemirror-state"
 import {CellSelection} from "./cellselection"
-import {selectedRect} from './util'
+import {selectedRect} from './commands'
 import './tableDrawCellSelection.css'
 
 export const tableDrawCellSelectionKey = new PluginKey("tableDrawCellSelection")

@@ -108,23 +108,6 @@ export function columnIsHeader(map, table, col) {
   return true
 }
 
-// Helper to get the selected rectangle in a table, if any. Adds table
-// map, table node, and table start offset to the object for
-// convenience.
-export function selectedRect(state) {
-  let sel = state.selection, $pos = selectionCell(state)
-  let table = $pos.node(-1), tableStart = $pos.start(-1), map = TableMap.get(table)
-  let rect
-  if (sel instanceof CellSelection)
-    rect = map.rectBetween(sel.$anchorCell.pos - tableStart, sel.$headCell.pos - tableStart)
-  else
-    rect = map.findCell($pos.pos - tableStart)
-  rect.tableStart = tableStart
-  rect.map = map
-  rect.table = table
-  return rect
-}
-
 function getDomWidth (view, pos) {
   const dom = view.domAtPos(pos)
   const domNode = dom.node.childNodes[dom.offset]

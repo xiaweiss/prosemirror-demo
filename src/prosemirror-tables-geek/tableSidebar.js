@@ -78,7 +78,7 @@ class sidebarDecoration {
   }
 
   renderSelectTable () {
-    const {state, view, widget, tableMap} = this
+    const {state, view, widget} = this
 
     // select table
     const sidebarSelectTable = widget.appendChild(document.createElement('div'))
@@ -164,7 +164,7 @@ class sidebarDecoration {
         const sidebarCol = sidebarColContainer.appendChild(document.createElement('div'))
         sidebarCol.className = 'ProseMirror-tableSidebar-col'
 
-        this.updateSidebarColStatus (sidebarCol, col)
+        this.updateSidebarColStatus(sidebarCol, col)
 
         const isLast = col === tableMap.width - 1
         this.updateColWidth(sidebarCol, pos, isLast)
