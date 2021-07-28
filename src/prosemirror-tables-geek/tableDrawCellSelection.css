@@ -11,6 +11,7 @@
   position: absolute;
   left: 0;
   top: 0;
+  max-height: 100%;
   box-sizing: border-box;
   background: rgba(61, 178, 75, 0.04);
   border: 1px solid rgba(61, 178, 75, 1);;
