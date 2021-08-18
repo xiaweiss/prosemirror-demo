@@ -2,8 +2,7 @@
   display: none;
 }
 
-.ProseMirror table,
-.ProseMirror tbody {
+.ProseMirror table {
   position: relative;
 }
 

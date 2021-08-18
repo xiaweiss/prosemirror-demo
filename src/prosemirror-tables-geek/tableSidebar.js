@@ -111,12 +111,14 @@ class sidebarDecoration {
 
       this.updateSidebarRowStatus(sidebarRow, row)
 
+      const isFirst = row === 0
       const isLast = row === tableMap.height - 1
-      this.updateRowHeight(sidebarRow, pos, isLast)
+
+      this.updateRowHeight(sidebarRow, pos, isFirst, isLast)
 
       // calc height after prosemirror doc update
       requestAnimationFrame(() => {
-        this.updateRowHeight(sidebarRow, pos, isLast)
+        this.updateRowHeight(sidebarRow, pos, isFirst, isLast)
       })
 
       sidebarRow.addEventListener('mousedown', () => {
@@ -166,11 +168,14 @@ class sidebarDecoration {
 
         this.updateSidebarColStatus(sidebarCol, col)
 
+        const isFirst = col === 0
         const isLast = col === tableMap.width - 1
-        this.updateColWidth(sidebarCol, pos, isLast)
 
+        this.updateColWidth(sidebarCol, pos, isFirst, isLast)
+
+        // calc height after prosemirror doc update
         requestAnimationFrame(() => {
-          this.updateColWidth(sidebarCol, pos, isLast)
+          this.updateColWidth(sidebarCol, pos, isFirst, isLast)
         })
 
         sidebarCol.addEventListener('mousedown', () => {
@@ -206,22 +211,23 @@ class sidebarDecoration {
     }))
   }
 
-  updateRowHeight (sidebarRow, pos, isLast) {
+  updateRowHeight (sidebarRow, pos, isFirst, isLast) {
     const {view, tableStart} = this
     const dom = view.nodeDOM(tableStart + pos)
     // check dom when redo delete table
     const height = dom && dom.getBoundingClientRect ? dom.getBoundingClientRect().height : 0
-    // if last cell, add table border right 1px
-    if (height > 0) { sidebarRow.style.height = `${height + (isLast ? 1 : 0)}px` }
+    // if last cell, add table border bottom 1px
+    if (height > 0) { sidebarRow.style.height = height + (isLast ? 1 : 0) + 'px' }
   }
 
-  updateColWidth (sidebarCol, pos, isLast) {
+  updateColWidth (sidebarCol, pos, isFirst, isLast) {
     const {view, tableStart} = this
     const dom = view.nodeDOM(tableStart + pos)
     // check dom when redo delete table
     const width = dom && dom.getBoundingClientRect ? dom.getBoundingClientRect().width : 0
-    // if last cell, add table border bottom 1px
-    if (width > 0) { sidebarCol.style.width = `${width + (isLast ? 1 : 0)}px` }
+    // if first cell, minus table border left 1px
+    // if last cell, add table border right 1px
+    if (width > 0) { sidebarCol.style.width = width - (isFirst ? 1 : 0) + (isLast ? 1 : 0) + 'px' }
   }
 
   updateSelectTableStatus (sidebarSelectTable) {

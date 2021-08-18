@@ -1,3 +1,7 @@
+.ProseMirror table {
+  margin-top: 10px;
+}
+
 .ProseMirror-tableSidebar {
   position: relative;
 }
@@ -56,9 +60,9 @@
 .ProseMirror-tableSidebar-col-container {
   position: absolute;
   left: 0;
-  top: -10px;
-  height: 10px;
+  top: -11px;
   display: flex;
+  height: 10px;
 }
 
 .ProseMirror-tableSidebar-col {
@@ -79,11 +83,6 @@
 }
 
 /* row & col */
-.ProseMirror-tableSidebar-row[selected],
-.ProseMirror-tableSidebar-col[selected] {
-  background: #E8E8EA;
-}
-
 .ProseMirror-tableSidebar-row[selected-row],
 .ProseMirror-tableSidebar-col[selected-col] {
   background: rgba(61, 178, 75, 0.4);

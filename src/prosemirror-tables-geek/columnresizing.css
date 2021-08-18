@@ -10,7 +10,7 @@
 }
 
 .ProseMirror td:last-child .column-resize-handle {
-  right: 0;
+  right: -1px;
 }
 
 .ProseMirror.resize-col-cursor {

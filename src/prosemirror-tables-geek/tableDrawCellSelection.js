@@ -75,10 +75,10 @@ export function tableDrawCellSelection() {
           const widget = document.createElement("div")
 
           widget.className = 'ProseMirror-drawCellSelection'
-          widget.style.width = rightPx - leftPx + 1 + 'px' // add table border-right 1px
-          widget.style.height = bottomPx - topPx + 1 + 'px' // add table barder-bottom 1px
-          widget.style.left = leftPx + 'px'
-          widget.style.top = topPx + 'px'
+          widget.style.left = Math.max(0, leftPx - 1) + 'px' // only left row has border-left, start from 0
+          widget.style.top = topPx - 1 + 'px'
+          widget.style.width = rightPx - Math.max(0, leftPx - 1) + 'px' // right - left
+          widget.style.height = bottomPx - (topPx - 1) + 'px' // bottom - top
 
           return widget
         }))
